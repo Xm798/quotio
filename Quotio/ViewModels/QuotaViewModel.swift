@@ -1184,8 +1184,12 @@ final class QuotaViewModel {
     private func refreshAntigravityQuotasInternal() async {
         // Fetch both quotas and subscriptions in one call (avoids duplicate API calls)
         let (quotas, subscriptions) = await antigravityFetcher.fetchAllAntigravityData()
-        
-        providerQuotas[.antigravity] = quotas
+
+        if quotas.isEmpty {
+            providerQuotas.removeValue(forKey: .antigravity)
+        } else {
+            providerQuotas[.antigravity] = quotas
+        }
         
         // Merge instead of replace to preserve data if API fails
         var providerInfos = subscriptionInfos[.antigravity] ?? [:]
@@ -1202,8 +1206,12 @@ final class QuotaViewModel {
     /// Used after switching accounts (active account already set by switch operation)
     private func refreshAntigravityQuotasWithoutDetect() async {
         let (quotas, subscriptions) = await antigravityFetcher.fetchAllAntigravityData()
-        
-        providerQuotas[.antigravity] = quotas
+
+        if quotas.isEmpty {
+            providerQuotas.removeValue(forKey: .antigravity)
+        } else {
+            providerQuotas[.antigravity] = quotas
+        }
         
         var providerInfos = subscriptionInfos[.antigravity] ?? [:]
         for (email, info) in subscriptions {
@@ -1250,12 +1258,20 @@ final class QuotaViewModel {
     
     private func refreshOpenAIQuotasInternal() async {
         let quotas = await openAIFetcher.fetchAllCodexQuotas()
-        providerQuotas[.codex] = quotas
+        if quotas.isEmpty {
+            providerQuotas.removeValue(forKey: .codex)
+        } else {
+            providerQuotas[.codex] = quotas
+        }
     }
     
     private func refreshCopilotQuotasInternal() async {
         let quotas = await copilotFetcher.fetchAllCopilotQuotas()
-        providerQuotas[.copilot] = quotas
+        if quotas.isEmpty {
+            providerQuotas.removeValue(forKey: .copilot)
+        } else {
+            providerQuotas[.copilot] = quotas
+        }
     }
     
     func refreshQuotaForProvider(_ provider: AIProvider) async {
