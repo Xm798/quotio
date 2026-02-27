@@ -1477,6 +1477,7 @@ final class QuotaViewModel {
                 if refreshedCount > 0 {
                     print("[Kiro] Refreshed \(refreshedCount) token(s) after login")
                 }
+                await refreshData()
                 oauthState = OAuthState(provider: .kiro, status: .success)
                 return
             }
