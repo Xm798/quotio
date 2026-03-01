@@ -546,19 +546,17 @@ final class QuotaViewModel {
             }
         }
         
-        // 2. Remap for Direct AuthFiles (Monitor Mode)
-        if modeManager.isMonitorMode {
-            for file in directAuthFiles where file.provider == .kiro {
-                let filenameKey = cleanName(file.filename)
-                
-                // Skip if already processed by Proxy loop
-                if consumedRawKeys.contains(filenameKey) { continue }
-                
-                if let data = rawQuotas[filenameKey] {
-                    let targetKey = file.email ?? file.filename
-                    remappedQuotas[targetKey] = data
-                    consumedRawKeys.insert(filenameKey)
-                }
+        // 2. Remap for Direct AuthFiles (fallback when proxy authFiles not yet loaded)
+        for file in directAuthFiles where file.provider == .kiro {
+            let filenameKey = cleanName(file.filename)
+
+            // Skip if already processed by Proxy loop
+            if consumedRawKeys.contains(filenameKey) { continue }
+
+            if let data = rawQuotas[filenameKey] {
+                let targetKey = file.menuBarAccountKey
+                remappedQuotas[targetKey] = data
+                consumedRawKeys.insert(filenameKey)
             }
         }
         
