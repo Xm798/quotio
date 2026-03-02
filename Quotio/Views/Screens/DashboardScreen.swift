@@ -17,6 +17,7 @@ struct DashboardScreen: View {
     @State private var selectedAgentForConfig: CLIAgent?
     @State private var sheetPresentationID = UUID()
     @State private var showTunnelSheet = false
+    @State private var showKiroLoginSheet = false
     
     private var tunnelManager: TunnelManager { TunnelManager.shared }
     
@@ -111,13 +112,25 @@ struct DashboardScreen: View {
             }
         }
         .sheet(item: $selectedProvider) { provider in
-            OAuthSheet(provider: provider, projectId: $projectId) {
+            OAuthSheet(provider: provider, projectId: $projectId, onDismiss: {
                 selectedProvider = nil
                 projectId = ""
                 viewModel.oauthState = nil
                 Task { await viewModel.refreshData() }
-            }
+            }, onKiroNativeLogin: {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    showKiroLoginSheet = true
+                }
+            })
             .environment(viewModel)
+        }
+        .sheet(isPresented: $showKiroLoginSheet) {
+            KiroLoginView { _ in
+                Task {
+                    await viewModel.refreshData()
+                    await viewModel.refreshQuotaForProvider(.kiro)
+                }
+            }
         }
         .sheet(item: $selectedAgentForConfig) { (agent: CLIAgent) in
             AgentConfigSheet(viewModel: viewModel.agentSetupViewModel, agent: agent)
@@ -598,6 +611,8 @@ struct DashboardScreen: View {
             let provider = AIProvider.allCases[index]
             if provider == .vertex {
                 isImporterPresented = true
+            } else if provider == .kiro {
+                showKiroLoginSheet = true
             } else {
                 viewModel.oauthState = nil
                 selectedProvider = provider

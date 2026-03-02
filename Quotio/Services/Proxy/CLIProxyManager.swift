@@ -1181,22 +1181,42 @@ enum AuthCommand: Equatable {
     case kiroAWSLogin
     case kiroAWSAuthCode
     case kiroImport
-    
+    /// IAM Identity Center login via CLIProxyAPI
+    /// - Parameters:
+    ///   - startUrl: IAM Identity Center start URL (nil for Builder ID default)
+    ///   - region: AWS region (default: us-east-1)
+    ///   - useDeviceFlow: true for device code flow, false for authorization code flow
+    ///   - noIncognito: true to use existing browser session instead of incognito
+    case kiroIdcLogin(startUrl: String?, region: String, useDeviceFlow: Bool, noIncognito: Bool = false)
+
     var arguments: [String] {
         switch self {
         case .copilotLogin:
-            return ["-github-copilot-login"]
+            return ["--github-copilot-login"]
         case .kiroGoogleLogin:
-            return ["-kiro-google-login"]
+            return ["--kiro-google-login"]
         case .kiroAWSLogin:
-            return ["-kiro-aws-login"]
+            return ["--kiro-aws-login"]
         case .kiroAWSAuthCode:
-            return ["-kiro-aws-authcode"]
+            return ["--kiro-aws-authcode"]
         case .kiroImport:
-            return ["-kiro-import"]
+            return ["--kiro-import"]
+        case .kiroIdcLogin(let startUrl, let region, let useDeviceFlow, let noIncognito):
+            var args: [String]
+            if let startUrl = startUrl {
+                args = ["--kiro-idc-login", "--kiro-idc-start-url", startUrl,
+                        "--kiro-idc-region", region,
+                        "--kiro-idc-flow", useDeviceFlow ? "device" : "authcode"]
+            } else {
+                args = [useDeviceFlow ? "--kiro-aws-login" : "--kiro-aws-authcode"]
+            }
+            if noIncognito {
+                args.append("--no-incognito")
+            }
+            return args
         }
     }
-    
+
     var displayName: String {
         switch self {
         case .copilotLogin:
@@ -1204,11 +1224,13 @@ enum AuthCommand: Equatable {
         case .kiroGoogleLogin:
             return "Google OAuth"
         case .kiroAWSLogin:
-            return "AWS Builder ID (Device Code)"
+            return "AWS Builder ID (CLI)"
         case .kiroAWSAuthCode:
             return "AWS Builder ID (Browser)"
         case .kiroImport:
             return "Import from Kiro IDE"
+        case .kiroIdcLogin(let startUrl, _, _, _):
+            return startUrl != nil ? "IAM Identity Center" : "AWS Builder ID"
         }
     }
 }
@@ -1231,7 +1253,7 @@ extension CLIProxyManager {
         return await withCheckedContinuation { continuation in
             let newAuthProcess = Process()
             newAuthProcess.executableURL = URL(fileURLWithPath: effectiveBinaryPath)
-            newAuthProcess.arguments = ["-config", configPath] + command.arguments
+            newAuthProcess.arguments = ["--config", configPath] + command.arguments
             
             let outputPipe = Pipe()
             let errorPipe = Pipe()
@@ -1284,11 +1306,11 @@ extension CLIProxyManager {
             
             newAuthProcess.terminationHandler = { [weak self] terminatedProcess in
                 outputPipe.fileHandleForReading.readabilityHandler = nil
-                
+
                 Task { @MainActor in
                     self?.authProcess = nil
                 }
-                
+
                 let status = terminatedProcess.terminationStatus
                 if status == 0 {
                     safeResume(AuthCommandResult(
@@ -1296,44 +1318,61 @@ extension CLIProxyManager {
                         message: "Authentication completed successfully.",
                         deviceCode: nil
                     ))
+                } else {
+                    safeResume(AuthCommandResult(
+                        success: false,
+                        message: "Authentication failed (exit code: \(status))",
+                        deviceCode: nil
+                    ))
                 }
             }
-            
+
+            let isKiroCommand: Bool = {
+                switch command {
+                case .kiroAWSAuthCode, .kiroAWSLogin, .kiroImport, .kiroGoogleLogin, .kiroIdcLogin:
+                    return true
+                default:
+                    return false
+                }
+            }()
+
             do {
                 try newAuthProcess.run()
-                
+
                 Task { @MainActor in
                     self.authProcess = newAuthProcess
                 }
-                
-                DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 3.0) {
-                    guard newAuthProcess.isRunning else { return }
-                    
-                    if case .copilotLogin = command {
-                        if let code = self.extractDeviceCode(from: state.capturedOutput) {
-                            DispatchQueue.main.async {
-                                NSPasteboard.general.clearContents()
-                                NSPasteboard.general.setString(code, forType: .string)
+
+                if !isKiroCommand {
+                    DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 3.0) {
+                        guard newAuthProcess.isRunning else { return }
+
+                        if case .copilotLogin = command {
+                            if let code = self.extractDeviceCode(from: state.capturedOutput) {
+                                DispatchQueue.main.async {
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString(code, forType: .string)
+                                }
+
+                                safeResume(AuthCommandResult(
+                                    success: true,
+                                    message: "🌐 Browser opened for GitHub authentication.\n\n📋 Code copied to clipboard:\n\n\(code)\n\nJust paste it in the browser!",
+                                    deviceCode: code
+                                ))
+                            } else {
+                                safeResume(AuthCommandResult(
+                                    success: true,
+                                    message: "🌐 Browser opened for GitHub authentication.\n\nCheck your browser for the device code.",
+                                    deviceCode: nil
+                                ))
                             }
-                            
-                            safeResume(AuthCommandResult(
-                                success: true,
-                                message: "🌐 Browser opened for GitHub authentication.\n\n📋 Code copied to clipboard:\n\n\(code)\n\nJust paste it in the browser!",
-                                deviceCode: code
-                            ))
                         } else {
                             safeResume(AuthCommandResult(
                                 success: true,
-                                message: "🌐 Browser opened for GitHub authentication.\n\nCheck your browser for the device code.",
+                                message: "🌐 Browser opened for authentication.\n\nPlease complete the login in your browser.",
                                 deviceCode: nil
                             ))
                         }
-                    } else {
-                        safeResume(AuthCommandResult(
-                            success: true,
-                            message: "🌐 Browser opened for authentication.\n\nPlease complete the login in your browser.",
-                            deviceCode: nil
-                        ))
                     }
                 }
             } catch {
