@@ -66,7 +66,7 @@ final class StatusBarMenuBuilder {
                 } else {
                     for account in accounts {
                         let cardItem = buildAccountCardItem(
-                            email: account.email,
+                            email: account.accountKey,
                             data: account.data,
                             provider: provider
                         )
@@ -180,9 +180,9 @@ final class StatusBarMenuBuilder {
         return providers.first ?? .gemini
     }
     
-    private func accountsForProvider(_ provider: AIProvider) -> [(email: String, data: ProviderQuotaData)] {
+    private func accountsForProvider(_ provider: AIProvider) -> [(accountKey: String, data: ProviderQuotaData)] {
         guard let quotas = viewModel.providerQuotas[provider] else { return [] }
-        return quotas.map { ($0.key, $0.value) }.sorted { $0.email < $1.email }
+        return quotas.map { ($0.key, $0.value) }.sorted { $0.accountKey < $1.accountKey }
     }
 
     // MARK: - Header Item
@@ -761,7 +761,7 @@ private struct MenuAccountCardView: View {
         if !claudeModels.isEmpty {
             let aggregatedPercent = settings.aggregateModelPercentages(claudeModels.map(\.percentage))
             let minModel = claudeModels.min(by: { $0.percentage < $1.percentage })
-            groups.append(AntigravityDisplayGroup(name: "Claude 4.5", percentage: aggregatedPercent, resetTime: minModel?.resetTime))
+            groups.append(AntigravityDisplayGroup(name: "Claude", percentage: aggregatedPercent, resetTime: minModel?.resetTime))
         }
 
         return groups.sorted { $0.percentage < $1.percentage }
@@ -867,7 +867,19 @@ private struct MenuAccountCardView: View {
             if isAntigravity {
                 return antigravityGroups.map { ModelBadgeData(name: $0.name, percentage: $0.percentage, resetTime: $0.resetTime) }
             } else {
-                return data.models.map { ModelBadgeData(name: $0.displayName, percentage: $0.percentage, resetTime: $0.resetTime) }
+                let isKiro = provider == .kiro
+                return data.models.map { model in
+                    let info = isKiro ? (KiroQuotaFetcher.overageInfo(for: "\(email):\(model.name)") ?? .disabled) : .disabled
+                    return ModelBadgeData(
+                        name: model.displayName,
+                        percentage: model.percentage,
+                        resetTime: model.resetTime,
+                        used: model.used,
+                        limit: model.limit,
+                        overageCredits: info.used,
+                        overageRate: info.rate
+                    )
+                }
             }
         }()
         
@@ -912,12 +924,12 @@ private struct MenuAccountCardView: View {
     private var primaryResetModel: ModelQuota? {
         let formatter = ISO8601DateFormatter()
         let now = Date()
-        
+
         let validModels = data.models.filter { model in
             guard let date = formatter.date(from: model.resetTime) else { return false }
             return date > now
         }
-        
+
         return validModels.sorted { m1, m2 in
             if abs(m1.percentage - m2.percentage) > 0.1 {
                 return m1.percentage < m2.percentage
@@ -927,9 +939,8 @@ private struct MenuAccountCardView: View {
             return d1 < d2
         }.first
     }
-    
+
     private func formatLocalTime(_ isoString: String) -> String {
-        // Try parsing with fractional seconds first, then standard format
         let isoFormatterWithFractional = ISO8601DateFormatter()
         isoFormatterWithFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
@@ -951,12 +962,24 @@ private struct ModelBadgeData: Identifiable {
     let percentage: Double
     let resetTime: String?
 
+    // Overage support for Kiro
+    var used: Int?
+    var limit: Int?
+    var overageCredits: Int = 0
+    var overageRate: Double = 0.04
+
     var id: String { name }
+
+    var hasOverage: Bool { overageCredits > 0 }
+
+    var formattedOverageCost: String? {
+        guard overageCredits > 0 else { return nil }
+        return String(format: "$%.2f", Double(overageCredits) * overageRate)
+    }
 
     var formattedResetTime: String? {
         guard let resetTime = resetTime else { return nil }
 
-        // Try parsing with fractional seconds first, then standard format
         let isoFormatterWithFractional = ISO8601DateFormatter()
         isoFormatterWithFractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
@@ -1016,7 +1039,7 @@ private func menuStatusColor(remainingPercent: Double, displayMode: QuotaDisplay
 
 private struct LowestBarLayout: View {
     let models: [ModelBadgeData]
-    
+
     private var settings: MenuBarSettingsManager { MenuBarSettingsManager.shared }
 
     private var sorted: [ModelBadgeData] {
@@ -1033,7 +1056,7 @@ private struct LowestBarLayout: View {
 
     var body: some View {
         let displayMode = settings.quotaDisplayMode
-        
+
         VStack(spacing: 8) {
             if let lowest = lowest {
                 // Hero Row for Lowest with reset time
@@ -1043,19 +1066,55 @@ private struct LowestBarLayout: View {
                             .font(.system(size: 12, weight: .semibold, design: .rounded))
                             .foregroundStyle(.primary)
                         Spacer()
+
+                        // Show used/limit if available
+                        if let used = lowest.used, let limit = lowest.limit {
+                            Text("\(used)/\(limit)")
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundStyle(.tertiary)
+                        }
+
                         PercentageBadge(percentage: lowest.percentage, style: .textOnly)
                     }
 
-                    ModernProgressBar(percentage: lowest.percentage, height: 8)
+                    // Progress bar with overage visualization
+                    if lowest.hasOverage, let used = lowest.used, let limit = lowest.limit {
+                        MenuOverageProgressBar(used: used, limit: limit, overageCredits: lowest.overageCredits, height: 8)
+                    } else {
+                        ModernProgressBar(percentage: lowest.percentage, height: 8)
+                    }
 
-                    if let resetTime = lowest.formattedResetTime {
-                        HStack(spacing: 4) {
-                            Image(systemName: "clock.arrow.circlepath")
-                                .font(.system(size: 9))
-                            Text(resetTime)
-                                .font(.system(size: 9, weight: .medium, design: .rounded))
+                    // Overage info or reset time
+                    HStack(spacing: 8) {
+                        if lowest.hasOverage, let cost = lowest.formattedOverageCost {
+                            HStack(spacing: 4) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.system(size: 9))
+                                    .foregroundStyle(.orange)
+                                Text("+\(lowest.overageCredits)")
+                                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                                    .foregroundStyle(.orange)
+                                Text(cost)
+                                    .font(.system(size: 9, weight: .semibold, design: .rounded))
+                                    .foregroundStyle(.red)
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 1)
+                                    .background(Color.red.opacity(0.1))
+                                    .clipShape(Capsule())
+                            }
                         }
-                        .foregroundStyle(.tertiary)
+
+                        Spacer()
+
+                        if let resetTime = lowest.formattedResetTime {
+                            HStack(spacing: 4) {
+                                Image(systemName: "clock.arrow.circlepath")
+                                    .font(.system(size: 9))
+                                Text(resetTime)
+                                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                            }
+                            .foregroundStyle(.tertiary)
+                        }
                     }
                 }
                 .padding(8)
@@ -1077,6 +1136,14 @@ private struct LowestBarLayout: View {
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                             Spacer()
+
+                            // Show overage cost if any
+                            if model.hasOverage, let cost = model.formattedOverageCost {
+                                Text("+\(cost)")
+                                    .font(.system(size: 9, weight: .medium, design: .rounded))
+                                    .foregroundStyle(.orange)
+                            }
+
                             if let resetTime = model.formattedResetTime {
                                 Text(resetTime)
                                     .font(.system(size: 9, design: .rounded))
@@ -1140,7 +1207,7 @@ private struct RingGridLayout: View {
 
 private struct CardGridLayout: View {
     let models: [ModelBadgeData]
-    
+
     private var settings: MenuBarSettingsManager { MenuBarSettingsManager.shared }
 
     private var columns: [GridItem] {
@@ -1151,10 +1218,10 @@ private struct CardGridLayout: View {
             return [GridItem(.flexible()), GridItem(.flexible())]
         }
     }
-    
+
     var body: some View {
         let displayMode = settings.quotaDisplayMode
-        
+
         LazyVGrid(columns: columns, spacing: 8) {
             ForEach(models, id: \.name) { (model: ModelBadgeData) in
                 VStack(alignment: .leading, spacing: 4) {
@@ -1174,7 +1241,27 @@ private struct CardGridLayout: View {
                             .foregroundStyle(menuStatusColor(remainingPercent: model.percentage, displayMode: displayMode))
                     }
 
-                    ModernProgressBar(percentage: model.percentage, height: 4)
+                    // Progress bar with overage visualization
+                    if model.hasOverage, let used = model.used, let limit = model.limit {
+                        MenuOverageProgressBar(used: used, limit: limit, overageCredits: model.overageCredits, height: 4)
+                    } else {
+                        ModernProgressBar(percentage: model.percentage, height: 4)
+                    }
+
+                    // Overage info
+                    if model.hasOverage, let cost = model.formattedOverageCost {
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 8))
+                                .foregroundStyle(.orange)
+                            Text("+\(model.overageCredits)")
+                                .font(.system(size: 8, weight: .medium))
+                                .foregroundStyle(.orange)
+                            Text(cost)
+                                .font(.system(size: 8, weight: .semibold))
+                                .foregroundStyle(.red)
+                        }
+                    }
                 }
                 .padding(8)
                 .background(Color.secondary.opacity(0.05))
@@ -1182,7 +1269,6 @@ private struct CardGridLayout: View {
             }
         }
     }
-
 }
 
 // MARK: - Shared Components
@@ -1190,23 +1276,23 @@ private struct CardGridLayout: View {
 private struct ModernProgressBar: View {
     let percentage: Double
     let height: CGFloat
-    
+
     private var settings: MenuBarSettingsManager { MenuBarSettingsManager.shared }
-    
+
     private var displayPercent: Double {
         menuDisplayPercent(remainingPercent: percentage, displayMode: settings.quotaDisplayMode)
     }
-    
+
     var color: Color {
         menuStatusColor(remainingPercent: percentage, displayMode: settings.quotaDisplayMode)
     }
-    
+
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
                 Capsule()
                     .fill(Color.secondary.opacity(0.15))
-                
+
                 Capsule()
                     .fill(
                         LinearGradient(
@@ -1219,6 +1305,76 @@ private struct ModernProgressBar: View {
             }
         }
         .frame(height: height)
+    }
+}
+
+// Progress bar with overage visualization for Kiro
+private struct MenuOverageProgressBar: View {
+    let used: Int
+    let limit: Int
+    let overageCredits: Int
+    let height: CGFloat
+
+    private var baseUsed: Int { min(used, limit) }
+
+    private var totalWithOverage: Int {
+        max(1, limit + overageCredits)
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .leading) {
+                // Background track
+                Capsule()
+                    .fill(Color.secondary.opacity(0.15))
+
+                if overageCredits > 0 {
+                    // Base usage (capped at limit) - red
+                    let baseWidth = proxy.size.width * (Double(limit) / Double(totalWithOverage))
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [.red, .red.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: baseWidth)
+
+                    // Limit marker
+                    Rectangle()
+                        .fill(Color.primary.opacity(0.4))
+                        .frame(width: 2)
+                        .offset(x: baseWidth - 1)
+
+                    // Overage fill (orange)
+                    let overageWidth = proxy.size.width * (Double(overageCredits) / Double(totalWithOverage))
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [.orange, .orange.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: overageWidth)
+                        .offset(x: baseWidth)
+                } else {
+                    // Normal bar (no overage) - constrain width based on usage
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: [.red, .red.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: proxy.size.width * min(1.0, Double(used) / Double(max(1, limit))))
+                }
+            }
+        }
+        .frame(height: height)
+        .clipShape(Capsule())
     }
 }
 
@@ -1467,4 +1623,75 @@ private struct MenuBarActionButton: View {
         .disabled(isLoading)
         .onHover { isHovered = $0 }
     }
+}
+
+// MARK: - Menu Bar Overage Previews
+
+#Preview("Menu - Overage Progress Bar") {
+    VStack(spacing: 16) {
+        VStack(alignment: .leading) {
+            Text("Normal (50% used)").font(.caption).foregroundStyle(.secondary)
+            MenuOverageProgressBar(used: 500, limit: 1000, overageCredits: 0, height: 8)
+        }
+
+        VStack(alignment: .leading) {
+            Text("Full (100% used)").font(.caption).foregroundStyle(.secondary)
+            MenuOverageProgressBar(used: 1000, limit: 1000, overageCredits: 0, height: 8)
+        }
+
+        VStack(alignment: .leading) {
+            Text("Overage (+120)").font(.caption).foregroundStyle(.secondary)
+            MenuOverageProgressBar(used: 1120, limit: 1000, overageCredits: 120, height: 8)
+        }
+
+        VStack(alignment: .leading) {
+            Text("Heavy Overage (+500)").font(.caption).foregroundStyle(.secondary)
+            MenuOverageProgressBar(used: 1500, limit: 1000, overageCredits: 500, height: 8)
+        }
+    }
+    .padding()
+    .frame(width: 300)
+}
+
+#Preview("Menu - LowestBarLayout with Overage") {
+    VStack(spacing: 20) {
+        Text("Normal Usage").font(.headline)
+        LowestBarLayout(models: [
+            ModelBadgeData(name: "Credit", percentage: 50, resetTime: "2025-02-15T00:00:00Z", used: 500, limit: 1000)
+        ])
+
+        Divider()
+
+        Text("Full Usage").font(.headline)
+        LowestBarLayout(models: [
+            ModelBadgeData(name: "Credit", percentage: 0, resetTime: "2025-02-15T00:00:00Z", used: 1000, limit: 1000)
+        ])
+
+        Divider()
+
+        Text("With Overage").font(.headline)
+        LowestBarLayout(models: [
+            ModelBadgeData(name: "Credit", percentage: 0, resetTime: "2025-02-15T00:00:00Z", used: 1120, limit: 1000, overageCredits: 120, overageRate: 0.04)
+        ])
+    }
+    .padding()
+    .frame(width: 320)
+}
+
+#Preview("Menu - CardGridLayout with Overage") {
+    VStack(spacing: 20) {
+        Text("Normal").font(.headline)
+        CardGridLayout(models: [
+            ModelBadgeData(name: "Credit", percentage: 50, resetTime: "2025-02-15T00:00:00Z", used: 500, limit: 1000)
+        ])
+
+        Divider()
+
+        Text("With Overage").font(.headline)
+        CardGridLayout(models: [
+            ModelBadgeData(name: "Credit", percentage: 0, resetTime: "2025-02-15T00:00:00Z", used: 1200, limit: 1000, overageCredits: 200, overageRate: 0.04)
+        ])
+    }
+    .padding()
+    .frame(width: 320)
 }

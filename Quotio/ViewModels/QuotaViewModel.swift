@@ -567,6 +567,30 @@ final class QuotaViewModel {
             }
         }
 
+        // 4. Re-key overage cache to match remapped quota keys
+        for file in authFiles where file.providerType == .kiro {
+            let filenameKey = cleanName(file.name)
+            let targetKey = file.quotaLookupKey.isEmpty ? file.name : file.quotaLookupKey
+            if filenameKey != targetKey, let data = rawQuotas[filenameKey] {
+                for model in data.models {
+                    if let info = KiroQuotaFetcher.overageInfo(for: "\(filenameKey):\(model.name)") {
+                        KiroQuotaFetcher.setOverageInfo(info, for: "\(targetKey):\(model.name)")
+                    }
+                }
+            }
+        }
+        for file in directAuthFiles where file.provider == .kiro {
+            let filenameKey = cleanName(file.filename)
+            let targetKey = file.menuBarAccountKey
+            if filenameKey != targetKey, let data = rawQuotas[filenameKey] {
+                for model in data.models {
+                    if let info = KiroQuotaFetcher.overageInfo(for: "\(filenameKey):\(model.name)") {
+                        KiroQuotaFetcher.setOverageInfo(info, for: "\(targetKey):\(model.name)")
+                    }
+                }
+            }
+        }
+
         if remappedQuotas.isEmpty {
             providerQuotas.removeValue(forKey: .kiro)
         } else {

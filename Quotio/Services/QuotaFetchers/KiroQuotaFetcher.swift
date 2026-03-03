@@ -27,6 +27,11 @@ nonisolated struct KiroUsageResponse: Decodable {
         let usageLimitWithPrecision: Double?
         let nextDateReset: Double?
         let freeTrialInfo: KiroFreeTrialInfo?
+
+        // Overage support fields for Pay-per-use
+        let overageEnabled: Bool?
+        let overageUsage: Double?
+        let overageRate: Double?  // Cost per overage credit (default $0.04)
     }
 
     struct KiroFreeTrialInfo: Decodable {
@@ -62,6 +67,29 @@ nonisolated struct KiroTokenResponse: Codable {
 // MARK: - Kiro Quota Fetcher
 
 actor KiroQuotaFetcher {
+    // Thread-safe overage cache (reads from UI thread, writes from actor)
+    private static let cacheLock = NSLock()
+    nonisolated(unsafe) private static var _overageCache: [String: KiroOverageInfo] = [:]
+
+    static func setOverageInfo(_ info: KiroOverageInfo, for key: String) {
+        cacheLock.lock()
+        _overageCache[key] = info
+        cacheLock.unlock()
+    }
+
+    /// Look up overage info by exact cache key ("accountKey:modelName").
+    static func overageInfo(for key: String) -> KiroOverageInfo? {
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        return _overageCache[key]
+    }
+
+    static func clearOverageCache() {
+        cacheLock.lock()
+        _overageCache.removeAll()
+        cacheLock.unlock()
+    }
+
     // Default region for usage endpoint (most users are on us-east-1)
     private let defaultRegion = "us-east-1"
 
@@ -163,6 +191,9 @@ actor KiroQuotaFetcher {
         let allFiles = await authService.scanAllAuthFiles()
         let kiroFiles = allFiles.filter { $0.provider == .kiro }
 
+        // Clear stale overage data before fetching fresh data for all accounts
+        KiroQuotaFetcher.clearOverageCache()
+
         // Parallel fetching
         return await withTaskGroup(of: (String, ProviderQuotaData?).self) { group in
             for authFile in kiroFiles {
@@ -175,7 +206,7 @@ actor KiroQuotaFetcher {
                     // This prevents duplicate accounts in the UI
                     let key = authFile.filename.replacingOccurrences(of: ".json", with: "")
 
-                    let quota = await self.fetchQuota(tokenData: tokenData, filePath: authFile.filePath)
+                    let quota = await self.fetchQuota(tokenData: tokenData, filePath: authFile.filePath, accountKey: key)
                     return (key, quota)
                 }
             }
@@ -252,7 +283,7 @@ actor KiroQuotaFetcher {
 
     /// Fetch quota for a single token
     /// Implements reactive token refresh: if API returns 401/403, refresh token and retry once
-    private func fetchQuota(tokenData: AuthTokenData, filePath: String) async -> ProviderQuotaData? {
+    private func fetchQuota(tokenData: AuthTokenData, filePath: String, accountKey: String) async -> ProviderQuotaData? {
         var currentToken = tokenData.accessToken
         var hasAttemptedRefresh = false
         var tokenExpiresAt: Date? = parseExpiryDate(tokenData.expiresAt)
@@ -276,12 +307,12 @@ actor KiroQuotaFetcher {
 
         let region = extractRegionFromProfileArn(tokenData.extras?["profileArn"]) ?? tokenData.extras?["region"] ?? defaultRegion
         let profileArn = tokenData.extras?["profileArn"]
-        let result = await fetchUsageAPI(token: currentToken, tokenExpiresAt: tokenExpiresAt, profileArn: profileArn, region: region, tokenData: tokenData)
+        let result = await fetchUsageAPI(token: currentToken, tokenExpiresAt: tokenExpiresAt, profileArn: profileArn, region: region, tokenData: tokenData, accountKey: accountKey)
 
         // Reactive refresh: If 401/403 and haven't tried refresh yet, refresh and retry
         if (result.statusCode == 401 || result.statusCode == 403) && !hasAttemptedRefresh {
             if let (refreshed, newExpiry) = await refreshTokenWithExpiry(tokenData: tokenData, filePath: filePath) {
-                let retryResult = await fetchUsageAPI(token: refreshed, tokenExpiresAt: newExpiry, profileArn: profileArn, region: region, tokenData: tokenData)
+                let retryResult = await fetchUsageAPI(token: refreshed, tokenExpiresAt: newExpiry, profileArn: profileArn, region: region, tokenData: tokenData, accountKey: accountKey)
                 return retryResult.quotaData ?? ProviderQuotaData(models: [], lastUpdated: Date(), isForbidden: true, planType: "Unauthorized", tokenExpiresAt: newExpiry)
             }
         }
@@ -307,7 +338,7 @@ actor KiroQuotaFetcher {
         let quotaData: ProviderQuotaData?
     }
 
-    private func fetchUsageAPI(token: String, tokenExpiresAt: Date?, profileArn: String?, region: String, tokenData: AuthTokenData) async -> UsageAPIResult {
+    private func fetchUsageAPI(token: String, tokenExpiresAt: Date?, profileArn: String?, region: String, tokenData: AuthTokenData, accountKey: String) async -> UsageAPIResult {
         guard var components = URLComponents(string: usageEndpoint(region: region)) else {
             return UsageAPIResult(statusCode: 0, quotaData: ProviderQuotaData(
                 models: [ModelQuota(name: "Error", percentage: 0, resetTime: "Invalid URL")],
@@ -370,12 +401,13 @@ actor KiroQuotaFetcher {
             do {
                 let usageResponse = try JSONDecoder().decode(KiroUsageResponse.self, from: data)
                 let planType = usageResponse.subscriptionInfo?.subscriptionTitle ?? "Standard"
-                return UsageAPIResult(statusCode: 200, quotaData: convertToQuotaData(usageResponse, planType: planType, tokenExpiresAt: tokenExpiresAt))
+                return UsageAPIResult(statusCode: 200, quotaData: convertToQuotaData(usageResponse, planType: planType, tokenExpiresAt: tokenExpiresAt, accountKey: accountKey))
             } catch {
                 if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     let keys = json.keys.sorted().joined(separator: ",")
+                    Log.quota("Kiro decode error - keys: \(keys), error: \(error.localizedDescription)")
                     return UsageAPIResult(statusCode: 200, quotaData: ProviderQuotaData(
-                        models: [ModelQuota(name: "Debug: Keys: \(keys)", percentage: 0, resetTime: "Decode Error: \(error.localizedDescription)")],
+                        models: [ModelQuota(name: "Kiro", percentage: 0, resetTime: "Parse Error")],
                         lastUpdated: Date(), isForbidden: false, planType: "Error", tokenExpiresAt: tokenExpiresAt
                     ))
                 }
@@ -596,7 +628,7 @@ actor KiroQuotaFetcher {
     }
 
     /// Convert Kiro response to standard Quota Data
-    private func convertToQuotaData(_ response: KiroUsageResponse, planType: String, tokenExpiresAt: Date?) -> ProviderQuotaData {
+    private func convertToQuotaData(_ response: KiroUsageResponse, planType: String, tokenExpiresAt: Date?, accountKey: String) -> ProviderQuotaData {
         var models: [ModelQuota] = []
 
         // Calculate reset time from nextDateReset timestamp
@@ -637,7 +669,10 @@ actor KiroQuotaFetcher {
                     models.append(ModelQuota(
                         name: "Bonus \(displayName)",
                         percentage: percentage,
-                        resetTime: trialResetStr
+                        resetTime: trialResetStr,
+                        used: Int(used),
+                        limit: Int(total),
+                        remaining: Int(max(0, total - used))
                     ))
                 }
 
@@ -650,13 +685,36 @@ actor KiroQuotaFetcher {
                     var percentage: Double = 0
                     percentage = min(100, max(0, (regularTotal - regularUsed) / regularTotal * 100))
 
+                    // Calculate overage: prefer server-reported overageUsage, fall back to arithmetic
+                    let overageUsedValue = breakdown.overageUsage ?? 0
+                    let isOverLimit = regularUsed > regularTotal
+                    let arithmeticOverage = isOverLimit ? (regularUsed - regularTotal) : 0
+                    let calculatedOverage = Int(overageUsedValue > 0 ? overageUsedValue : arithmeticOverage)
+
                     // Use different name based on whether trial is active
                     let quotaName = hasActiveTrial ? "\(displayName) (Base)" : displayName
-                    models.append(ModelQuota(
+                    let quota = ModelQuota(
                         name: quotaName,
                         percentage: percentage,
-                        resetTime: resetTimeStr
-                    ))
+                        resetTime: resetTimeStr,
+                        used: Int(regularUsed),
+                        limit: Int(regularTotal),
+                        remaining: Int(max(0, regularTotal - regularUsed))
+                    )
+
+                    // Always write overage info so stale enabled entries get cleared
+                    let overageIsEnabled = breakdown.overageEnabled == true
+                    let cacheKey = "\(accountKey):\(quotaName)"
+                    KiroQuotaFetcher.setOverageInfo(
+                        KiroOverageInfo(
+                            enabled: overageIsEnabled,
+                            used: overageIsEnabled ? calculatedOverage : 0,
+                            rate: breakdown.overageRate ?? 0.04
+                        ),
+                        for: cacheKey
+                    )
+
+                    models.append(quota)
                 }
             }
         }
@@ -673,5 +731,24 @@ actor KiroQuotaFetcher {
             planType: planType,
             tokenExpiresAt: tokenExpiresAt
         )
+    }
+}
+
+// MARK: - Kiro Overage
+
+nonisolated struct KiroOverageInfo: Codable, Sendable {
+    var enabled: Bool
+    var used: Int           // Credits used beyond limit
+    var rate: Double        // Cost per credit (default $0.04)
+
+    static let disabled = KiroOverageInfo(enabled: false, used: 0, rate: 0)
+
+    var estimatedCost: Double {
+        Double(used) * rate
+    }
+
+    var formattedCost: String? {
+        guard used > 0 else { return nil }
+        return String(format: "$%.2f", estimatedCost)
     }
 }

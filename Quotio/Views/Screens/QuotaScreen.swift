@@ -257,16 +257,16 @@ private struct ProviderSegmentButton: View {
     private var remainingPercent: Double {
         max(0, min(100, quotaPercent ?? 0))
     }
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
                 ProviderIcon(provider: provider, size: 20)
-                
+
                 Text(provider.displayName)
                     .font(.subheadline)
                     .fontWeight(isSelected ? .semibold : .medium)
-                
+
                 if accountCount > 1 {
                     Text(String(accountCount))
                         .font(.caption2)
@@ -277,7 +277,7 @@ private struct ProviderSegmentButton: View {
                         .background(isSelected ? statusColor : Color.primary.opacity(0.08))
                         .clipShape(Capsule())
                 }
-                
+
                 if quotaPercent != nil {
                     ZStack {
                         Circle()
@@ -791,12 +791,31 @@ private struct AccountQuotaCardV2: View {
         if provider == .antigravity && !antigravityDisplayGroups.isEmpty {
             // Antigravity uses grouped display
             antigravityContentByStyle
+        } else if provider == .kiro, let data = account.quotaData {
+            // Kiro uses specialized display with overage support
+            kiroContentByStyle(data: data, accountKey: account.key)
         } else if let data = account.quotaData {
             // Standard providers
             standardContentByStyle(data: data)
         }
     }
-    
+
+    @ViewBuilder
+    private func kiroContentByStyle(data: ProviderQuotaData, accountKey: String) -> some View {
+        switch displayStyle {
+        case .lowestBar:
+            KiroLowestBarLayout(models: data.models, accountKey: accountKey)
+        case .ring:
+            KiroRingLayout(models: data.models, accountKey: accountKey)
+        case .card:
+            VStack(spacing: 16) {
+                ForEach(data.models) { model in
+                    KiroUsageRow(model: model, accountKey: accountKey)
+                }
+            }
+        }
+    }
+
     @ViewBuilder
     private var antigravityContentByStyle: some View {
         switch displayStyle {
@@ -988,13 +1007,11 @@ private struct SubscriptionBadgeV2: View {
     }
 }
 
-// MARK: - Antigravity Display Group
-
 private struct AntigravityDisplayGroup: Identifiable {
     let name: String
     let percentage: Double
     let models: [ModelQuota]
-    
+
     var id: String { name }
 }
 
@@ -1560,6 +1577,504 @@ private struct UsageRowV2: View {
     }
 }
 
+// MARK: - Kiro Credit Usage Bar (with Overage Support)
+
+private struct KiroCreditUsageBar: View {
+    let used: Int
+    let limit: Int
+    let overageCredits: Int
+    let overageRate: Double
+
+    private var baseUsed: Int {
+        min(used, limit)
+    }
+
+    private var basePercent: Double {
+        guard limit > 0 else { return 0 }
+        return Double(baseUsed) / Double(limit) * 100
+    }
+
+    private var totalWithOverage: Int {
+        max(1, limit + overageCredits)
+    }
+
+    private var statusColor: Color {
+        if overageCredits > 0 { return .red }
+        let remainingPercent = 100 - basePercent
+        if remainingPercent > 50 { return .green }
+        if remainingPercent > 20 { return .orange }
+        return .red
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            // Usage numbers
+            HStack(alignment: .firstTextBaseline) {
+                HStack(spacing: 4) {
+                    Text(String(overageCredits > 0 ? used : baseUsed))
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .monospacedDigit()
+                    Text("/ \(limit)")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text(String(format: "%.0f%%", 100 - basePercent))
+                        .font(.caption)
+                        .foregroundStyle(statusColor)
+                        .monospacedDigit()
+                }
+
+                Spacer()
+
+                if overageCredits > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                        Text("\(overageCredits) " + "kiro.overage".localized())
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.orange)
+                    }
+                } else {
+                    Text("\(limit - baseUsed) " + "kiro.remaining".localized())
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            // Progress bar with overage visualization
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    // Background track
+                    Capsule()
+                        .fill(Color.primary.opacity(0.06))
+
+                    if overageCredits > 0 {
+                        // Base usage (capped at limit)
+                        let baseWidth = proxy.size.width * (Double(limit) / Double(totalWithOverage))
+                        Capsule()
+                            .fill(statusColor.gradient)
+                            .frame(width: baseWidth)
+
+                        // Limit marker
+                        Rectangle()
+                            .fill(Color.primary.opacity(0.3))
+                            .frame(width: 2)
+                            .offset(x: baseWidth - 1)
+
+                        // Overage fill (orange, extends beyond limit)
+                        let overageWidth = proxy.size.width * (Double(overageCredits) / Double(totalWithOverage))
+                        Capsule()
+                            .fill(Color.orange.gradient)
+                            .frame(width: overageWidth)
+                            .offset(x: baseWidth)
+                    } else {
+                        // Normal progress (no overage)
+                        Capsule()
+                            .fill(statusColor.gradient)
+                            .frame(width: proxy.size.width * (basePercent / 100))
+                    }
+                }
+            }
+            .frame(height: 10)
+            .clipShape(Capsule())
+
+            // Legend (when overage is present)
+            if overageCredits > 0 {
+                HStack(spacing: 16) {
+                    legendItem(color: statusColor, label: "kiro.baseQuota".localized())
+                    legendItem(color: .orange, label: "kiro.overage".localized() + " ($\(String(format: "%.2f", overageRate))/" + "kiro.overage.credit".localized() + ")")
+                }
+                .font(.caption2)
+            }
+        }
+    }
+
+    private func legendItem(color: Color, label: String) -> some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 6, height: 6)
+            Text(label)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+// MARK: - Kiro Overage Section
+
+private struct KiroOverageSection: View {
+    let overageCredits: Int
+    let overageRate: Double
+    let overageEnabled: Bool
+
+    private var estimatedCost: Double {
+        Double(overageCredits) * overageRate
+    }
+
+    private var formattedCost: String {
+        String(format: "$%.2f", estimatedCost)
+    }
+
+    var body: some View {
+        if overageCredits > 0 {
+            // Active overage - show cost
+            VStack(alignment: .leading, spacing: 8) {
+                Divider().opacity(0.5)
+
+                HStack {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                        Text("kiro.overage".localized())
+                            .font(.caption)
+                            .fontWeight(.medium)
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: 12) {
+                        Text("+\(overageCredits) " + "kiro.overage.credits".localized())
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+
+                        Text(formattedCost)
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.red)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.red.opacity(0.1))
+                            .clipShape(Capsule())
+                    }
+                }
+
+                Text("$\(String(format: "%.2f", overageRate))/" + "kiro.overage.credit".localized())
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(10)
+            .background(Color.orange.opacity(0.06))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        } else if overageEnabled {
+            // Overage enabled but not used
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.shield")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+                Text("kiro.overage.enabled".localized())
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+}
+
+// MARK: - Kiro Lowest Bar Layout
+
+private struct KiroLowestBarLayout: View {
+    let models: [ModelQuota]
+    let accountKey: String
+
+    private var settings: MenuBarSettingsManager { MenuBarSettingsManager.shared }
+    private var displayHelper: QuotaDisplayHelper {
+        QuotaDisplayHelper(displayMode: settings.quotaDisplayMode)
+    }
+
+    private func overage(for model: ModelQuota) -> KiroOverageInfo {
+        KiroQuotaFetcher.overageInfo(for: "\(accountKey):\(model.name)") ?? .disabled
+    }
+
+    private var sorted: [ModelQuota] {
+        models.sorted { $0.percentage < $1.percentage }
+    }
+
+    private var lowest: ModelQuota? {
+        sorted.first
+    }
+
+    private var others: [ModelQuota] {
+        Array(sorted.dropFirst())
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            if let lowest = lowest {
+                let info = overage(for: lowest)
+
+                // Hero row for bottleneck with credit usage
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(lowest.displayName)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Spacer()
+                        if lowest.formattedResetTime != "—" && !lowest.formattedResetTime.isEmpty {
+                            Text(lowest.formattedResetTime)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+
+                    if let used = lowest.used, let limit = lowest.limit, limit > 0 {
+                        KiroCreditUsageBar(
+                            used: used,
+                            limit: limit,
+                            overageCredits: info.used,
+                            overageRate: info.rate
+                        )
+
+                        if info.used > 0 || info.enabled {
+                            KiroOverageSection(
+                                overageCredits: info.used,
+                                overageRate: info.rate,
+                                overageEnabled: info.enabled
+                            )
+                        }
+                    } else {
+                        let remainingPercent = max(0, min(100, lowest.percentage))
+                        let displayPercent = displayHelper.displayPercent(remainingPercent: remainingPercent)
+                        let statusColor = displayHelper.statusColor(remainingPercent: remainingPercent)
+
+                        HStack {
+                            Text(String(format: "%.0f%%", displayPercent))
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(statusColor)
+                                .monospacedDigit()
+                            Spacer()
+                        }
+
+                        GeometryReader { proxy in
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color.primary.opacity(0.06))
+                                Capsule()
+                                    .fill(statusColor.gradient)
+                                    .frame(width: proxy.size.width * (displayPercent / 100))
+                            }
+                        }
+                        .frame(height: 8)
+                    }
+                }
+                .padding(10)
+                .background(displayHelper.statusColor(remainingPercent: max(0, min(100, lowest.percentage))).opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
+
+            // Others as compact text rows
+            if !others.isEmpty {
+                VStack(spacing: 4) {
+                    ForEach(others) { model in
+                        let info = overage(for: model)
+                        HStack {
+                            Text(model.displayName)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            if let used = model.used, let limit = model.limit {
+                                Text("\(used)/\(limit)")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                                    .monospacedDigit()
+                            }
+                            if info.used > 0, let cost = info.formattedCost {
+                                Text("+\(cost)")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Kiro Ring Layout
+
+private struct KiroRingLayout: View {
+    let models: [ModelQuota]
+    let accountKey: String
+
+    private var settings: MenuBarSettingsManager { MenuBarSettingsManager.shared }
+    private var displayHelper: QuotaDisplayHelper {
+        QuotaDisplayHelper(displayMode: settings.quotaDisplayMode)
+    }
+
+    private func overage(for model: ModelQuota) -> KiroOverageInfo {
+        KiroQuotaFetcher.overageInfo(for: "\(accountKey):\(model.name)") ?? .disabled
+    }
+
+    private var totalOverageCost: Double {
+        models.reduce(0.0) { $0 + overage(for: $1).estimatedCost }
+    }
+
+    private var columns: [GridItem] {
+        let count = min(max(models.count, 1), 4)
+        return Array(repeating: GridItem(.flexible(), spacing: 12), count: count)
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            LazyVGrid(columns: columns, spacing: 12) {
+                ForEach(models) { model in
+                    let info = overage(for: model)
+                    let remainingPercent = max(0, min(100, model.percentage))
+                    let displayPercent = displayHelper.displayPercent(remainingPercent: remainingPercent)
+                    let statusColor = info.used > 0 ? Color.orange : displayHelper.statusColor(remainingPercent: remainingPercent)
+
+                    VStack(spacing: 6) {
+                        ZStack {
+                            RingProgressView(
+                                percent: displayPercent,
+                                size: 44,
+                                lineWidth: 5,
+                                tint: statusColor,
+                                showLabel: true
+                            )
+
+                            // Overage indicator
+                            if info.used > 0 {
+                                Image(systemName: "exclamationmark")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(.orange)
+                                    .offset(x: 18, y: -18)
+                            }
+                        }
+
+                        Text(model.displayName)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+
+                        if let used = model.used, let limit = model.limit {
+                            Text("\(used)/\(limit)")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                                .monospacedDigit()
+                        }
+
+                        if info.used > 0, let cost = info.formattedCost {
+                            Text("+\(cost)")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.red)
+                        }
+                    }
+                }
+            }
+
+            // Total overage cost summary
+            if totalOverageCost > 0 {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                    Text("kiro.overage.total".localized())
+                        .font(.caption)
+                    Spacer()
+                    Text(String(format: "$%.2f", totalOverageCost))
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.red)
+                }
+                .padding(8)
+                .background(Color.orange.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            }
+        }
+    }
+}
+
+// MARK: - Kiro Usage Row (with Overage Support)
+
+private struct KiroUsageRow: View {
+    let model: ModelQuota
+    let accountKey: String
+
+    private var settings: MenuBarSettingsManager { MenuBarSettingsManager.shared }
+    private var displayHelper: QuotaDisplayHelper {
+        QuotaDisplayHelper(displayMode: settings.quotaDisplayMode)
+    }
+
+    private var overageInfo: KiroOverageInfo {
+        KiroQuotaFetcher.overageInfo(for: "\(accountKey):\(model.name)") ?? .disabled
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Section header
+            HStack {
+                Text(model.displayName)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+
+                Spacer()
+
+                if model.formattedResetTime != "—" && !model.formattedResetTime.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock")
+                            .font(.caption2)
+                        Text(model.formattedResetTime)
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.tertiary)
+                }
+            }
+
+            // Credit usage bar (if used/limit available)
+            if let used = model.used, let limit = model.limit, limit > 0 {
+                KiroCreditUsageBar(
+                    used: used,
+                    limit: limit,
+                    overageCredits: overageInfo.used,
+                    overageRate: overageInfo.rate
+                )
+
+                // Overage section
+                if overageInfo.used > 0 || overageInfo.enabled {
+                    KiroOverageSection(
+                        overageCredits: overageInfo.used,
+                        overageRate: overageInfo.rate,
+                        overageEnabled: overageInfo.enabled
+                    )
+                }
+            } else {
+                // Fallback to percentage display
+                let remainingPercent = max(0, min(100, model.percentage))
+                let displayPercent = displayHelper.displayPercent(remainingPercent: remainingPercent)
+                let statusColor = displayHelper.statusColor(remainingPercent: remainingPercent)
+
+                HStack {
+                    Text(String(format: "%.0f%%", displayPercent))
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundStyle(statusColor)
+                        .monospacedDigit()
+
+                    Spacer()
+                }
+
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.primary.opacity(0.06))
+                        Capsule()
+                            .fill(statusColor.gradient)
+                            .frame(width: proxy.size.width * (displayPercent / 100))
+                    }
+                }
+                .frame(height: 8)
+            }
+        }
+    }
+}
+
 // MARK: - Loading View
 
 private struct QuotaLoadingView: View {
@@ -1596,4 +2111,116 @@ private struct QuotaLoadingView: View {
     QuotaScreen()
         .environment(QuotaViewModel())
         .frame(width: 600, height: 500)
+}
+
+// MARK: - Kiro Overage UI Test Previews
+
+#Preview("Kiro - Normal (50% used)") {
+    let model = ModelQuota(
+        name: "Agentic Requests",
+        percentage: 50,  // 50% remaining
+        resetTime: "2025-02-15T00:00:00Z",
+        used: 500,
+        limit: 1000,
+        remaining: 500
+    )
+
+    KiroUsageRow(model: model, accountKey: "preview")
+        .padding()
+        .frame(width: 350)
+}
+
+#Preview("Kiro - Full (100% used)") {
+    let model = ModelQuota(
+        name: "Agentic Requests",
+        percentage: 0,  // 0% remaining = 100% used
+        resetTime: "2025-02-15T00:00:00Z",
+        used: 1000,
+        limit: 1000,
+        remaining: 0
+    )
+    KiroQuotaFetcher.setOverageInfo(KiroOverageInfo(enabled: true, used: 0, rate: 0.04), for: "preview:\(model.name)")
+
+    return KiroUsageRow(model: model, accountKey: "preview")
+        .padding()
+        .frame(width: 350)
+}
+
+#Preview("Kiro - Overage (+120 credits)") {
+    let model = ModelQuota(
+        name: "Agentic Requests",
+        percentage: 0,  // 0% remaining
+        resetTime: "2025-02-15T00:00:00Z",
+        used: 1120,
+        limit: 1000,
+        remaining: 0
+    )
+    KiroQuotaFetcher.setOverageInfo(KiroOverageInfo(enabled: true, used: 120, rate: 0.04), for: "preview:\(model.name)")
+
+    return KiroUsageRow(model: model, accountKey: "preview")
+        .padding()
+        .frame(width: 350)
+}
+
+#Preview("Kiro - Heavy Overage (+500 credits)") {
+    let model = ModelQuota(
+        name: "Agentic Requests",
+        percentage: 0,
+        resetTime: "2025-02-15T00:00:00Z",
+        used: 1500,
+        limit: 1000,
+        remaining: 0
+    )
+    KiroQuotaFetcher.setOverageInfo(KiroOverageInfo(enabled: true, used: 500, rate: 0.04), for: "preview:\(model.name)")
+
+    return KiroUsageRow(model: model, accountKey: "preview")
+        .padding()
+        .frame(width: 350)
+}
+
+#Preview("Kiro - Credit Usage Bar Comparison") {
+    VStack(spacing: 20) {
+        VStack(alignment: .leading) {
+            Text("Normal (50% used)").font(.caption).foregroundStyle(.secondary)
+            KiroCreditUsageBar(used: 500, limit: 1000, overageCredits: 0, overageRate: 0.04)
+        }
+
+        VStack(alignment: .leading) {
+            Text("Full (100% used)").font(.caption).foregroundStyle(.secondary)
+            KiroCreditUsageBar(used: 1000, limit: 1000, overageCredits: 0, overageRate: 0.04)
+        }
+
+        VStack(alignment: .leading) {
+            Text("Overage (+120)").font(.caption).foregroundStyle(.secondary)
+            KiroCreditUsageBar(used: 1120, limit: 1000, overageCredits: 120, overageRate: 0.04)
+        }
+
+        VStack(alignment: .leading) {
+            Text("Heavy Overage (+500)").font(.caption).foregroundStyle(.secondary)
+            KiroCreditUsageBar(used: 1500, limit: 1000, overageCredits: 500, overageRate: 0.04)
+        }
+    }
+    .padding()
+    .frame(width: 350)
+}
+
+#Preview("Kiro - Overage Section States") {
+    VStack(spacing: 16) {
+        VStack(alignment: .leading) {
+            Text("Overage Enabled (not used)").font(.caption).foregroundStyle(.secondary)
+            KiroOverageSection(overageCredits: 0, overageRate: 0.04, overageEnabled: true)
+        }
+
+        VStack(alignment: .leading) {
+            Text("Small Overage").font(.caption).foregroundStyle(.secondary)
+            KiroOverageSection(overageCredits: 50, overageRate: 0.04, overageEnabled: true)
+        }
+
+        VStack(alignment: .leading) {
+            Text("Large Overage").font(.caption).foregroundStyle(.secondary)
+            KiroOverageSection(overageCredits: 500, overageRate: 0.04, overageEnabled: true)
+        }
+    }
+    .padding()
+    .frame(width: 350)
 }
