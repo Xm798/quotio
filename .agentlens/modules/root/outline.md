@@ -2,7 +2,7 @@
 
 [← Back to MODULE](MODULE.md) | [← Back to INDEX](../../INDEX.md)
 
-Symbol maps for 9 large files in this module.
+Symbol maps for 10 large files in this module.
 
 ## Quotio/QuotioApp.swift (818 lines)
 
@@ -113,6 +113,26 @@ Symbol maps for 9 large files in this module.
 | 470 | fn | parser | (internal) |
 | 515 | enum | AtomFeedError | (internal) |
 
+## Quotio/Services/DirectAuthFileService.swift (505 lines)
+
+| Line | Kind | Name | Visibility |
+| ---- | ---- | ---- | ---------- |
+| 14 | struct | DirectAuthFile | (internal) |
+| 66 | fn | hash | (internal) |
+| 80 | class | DirectAuthFileService | (internal) |
+| 84 | fn | expandPath | (private) |
+| 89 | fn | scanAllAuthFiles | (internal) |
+| 97 | fn | scanCLIProxyAPIDirectory | (private) |
+| 140 | fn | parseAuthFileJSON | (private) |
+| 186 | fn | mapTypeToProvider | (private) |
+| 206 | fn | parseISO8601Date | (private) |
+| 223 | fn | parseAuthFileName | (private) |
+| 247 | fn | extractEmail | (private) |
+| 287 | fn | readAuthToken | (internal) |
+| 399 | fn | loadKiroDeviceRegistration | (private) |
+| 449 | fn | updateKiroAuthFile | (private) |
+| 477 | struct | AuthTokenData | (internal) |
+
 ## Quotio/Services/ManagementAPIClient.swift (732 lines)
 
 | Line | Kind | Name | Visibility |
@@ -176,7 +196,7 @@ Symbol maps for 9 large files in this module.
 | 708 | method | init | (internal) |
 | 722 | fn | encode | (internal) |
 
-## Quotio/Services/Proxy/CLIProxyManager.swift (1979 lines)
+## Quotio/Services/Proxy/CLIProxyManager.swift (2018 lines)
 
 | Line | Kind | Name | Visibility |
 | ---- | ---- | ---- | ---------- |
@@ -216,34 +236,34 @@ Symbol maps for 9 large files in this module.
 | 1140 | fn | revealInFinder | (internal) |
 | 1147 | enum | ProxyError | (internal) |
 | 1178 | enum | AuthCommand | (internal) |
-| 1216 | struct | AuthCommandResult | (internal) |
-| 1222 | mod | extension CLIProxyManager | (internal) |
-| 1223 | fn | runAuthCommand | (internal) |
-| 1255 | fn | appendOutput | (internal) |
-| 1259 | fn | tryResume | (internal) |
-| 1270 | fn | safeResume | (internal) |
-| 1370 | mod | extension CLIProxyManager | (internal) |
-| 1400 | fn | checkForUpgrade | (internal) |
-| 1451 | fn | saveInstalledVersion | (private) |
-| 1459 | fn | fetchAvailableReleases | (internal) |
-| 1481 | fn | versionInfo | (internal) |
-| 1487 | fn | fetchGitHubRelease | (private) |
-| 1509 | fn | findCompatibleAsset | (private) |
-| 1542 | fn | performManagedUpgrade | (internal) |
-| 1600 | fn | downloadAndInstallVersion | (private) |
-| 1647 | fn | startDryRun | (private) |
-| 1718 | fn | promote | (private) |
-| 1753 | fn | rollback | (internal) |
-| 1786 | fn | stopTestProxy | (private) |
-| 1815 | fn | stopTestProxySync | (private) |
-| 1841 | fn | findUnusedPort | (private) |
-| 1851 | fn | isPortInUse | (private) |
-| 1870 | fn | createTestConfig | (private) |
-| 1898 | fn | cleanupTestConfig | (private) |
-| 1906 | fn | isNewerVersion | (private) |
-| 1909 | fn | parseVersion | (internal) |
-| 1941 | fn | findPreviousVersion | (private) |
-| 1954 | fn | migrateToVersionedStorage | (internal) |
+| 1238 | struct | AuthCommandResult | (internal) |
+| 1244 | mod | extension CLIProxyManager | (internal) |
+| 1245 | fn | runAuthCommand | (internal) |
+| 1277 | fn | appendOutput | (internal) |
+| 1281 | fn | tryResume | (internal) |
+| 1292 | fn | safeResume | (internal) |
+| 1409 | mod | extension CLIProxyManager | (internal) |
+| 1439 | fn | checkForUpgrade | (internal) |
+| 1490 | fn | saveInstalledVersion | (private) |
+| 1498 | fn | fetchAvailableReleases | (internal) |
+| 1520 | fn | versionInfo | (internal) |
+| 1526 | fn | fetchGitHubRelease | (private) |
+| 1548 | fn | findCompatibleAsset | (private) |
+| 1581 | fn | performManagedUpgrade | (internal) |
+| 1639 | fn | downloadAndInstallVersion | (private) |
+| 1686 | fn | startDryRun | (private) |
+| 1757 | fn | promote | (private) |
+| 1792 | fn | rollback | (internal) |
+| 1825 | fn | stopTestProxy | (private) |
+| 1854 | fn | stopTestProxySync | (private) |
+| 1880 | fn | findUnusedPort | (private) |
+| 1890 | fn | isPortInUse | (private) |
+| 1909 | fn | createTestConfig | (private) |
+| 1937 | fn | cleanupTestConfig | (private) |
+| 1945 | fn | isNewerVersion | (private) |
+| 1948 | fn | parseVersion | (internal) |
+| 1980 | fn | findPreviousVersion | (private) |
+| 1993 | fn | migrateToVersionedStorage | (internal) |
 
 ## Quotio/Services/Proxy/ProxyBridge.swift (1093 lines)
 
@@ -259,7 +279,7 @@ Symbol maps for 9 large files in this module.
 | 254 | fn | handleNewConnection | (private) |
 | 472 | fn | createFallbackContext | (private) |
 
-## Quotio/Services/StatusBarMenuBuilder.swift (1470 lines)
+## Quotio/Services/StatusBarMenuBuilder.swift (1697 lines)
 
 | Line | Kind | Name | Visibility |
 | ---- | ---- | ---- | ---------- |
@@ -293,24 +313,25 @@ Symbol maps for 9 large files in this module.
 | 642 | fn | copyButton | (private) |
 | 659 | struct | MenuAccountCardView | (private) |
 | 698 | fn | planConfig | (private) |
-| 930 | fn | formatLocalTime | (private) |
-| 949 | struct | ModelBadgeData | (private) |
-| 988 | struct | AntigravityDisplayGroup | (private) |
-| 995 | fn | menuDisplayPercent | (private) |
-| 999 | fn | menuStatusColor | (private) |
-| 1017 | struct | LowestBarLayout | (private) |
-| 1097 | struct | RingGridLayout | (private) |
-| 1141 | struct | CardGridLayout | (private) |
-| 1190 | struct | ModernProgressBar | (private) |
-| 1225 | struct | PercentageBadge | (private) |
-| 1261 | struct | MenuModelDetailView | (private) |
-| 1313 | struct | MenuEmptyStateView | (private) |
-| 1328 | struct | MenuViewMoreAccountsView | (private) |
-| 1376 | mod | extension AIProvider | (private) |
-| 1398 | struct | MenuActionsView | (private) |
-| 1436 | struct | MenuBarActionButton | (private) |
+| 942 | fn | formatLocalTime | (private) |
+| 960 | struct | ModelBadgeData | (private) |
+| 1011 | struct | AntigravityDisplayGroup | (private) |
+| 1018 | fn | menuDisplayPercent | (private) |
+| 1022 | fn | menuStatusColor | (private) |
+| 1040 | struct | LowestBarLayout | (private) |
+| 1164 | struct | RingGridLayout | (private) |
+| 1208 | struct | CardGridLayout | (private) |
+| 1276 | struct | ModernProgressBar | (private) |
+| 1312 | struct | MenuOverageProgressBar | (private) |
+| 1381 | struct | PercentageBadge | (private) |
+| 1417 | struct | MenuModelDetailView | (private) |
+| 1469 | struct | MenuEmptyStateView | (private) |
+| 1484 | struct | MenuViewMoreAccountsView | (private) |
+| 1532 | mod | extension AIProvider | (private) |
+| 1554 | struct | MenuActionsView | (private) |
+| 1592 | struct | MenuBarActionButton | (private) |
 
-## Quotio/ViewModels/QuotaViewModel.swift (1936 lines)
+## Quotio/ViewModels/QuotaViewModel.swift (1960 lines)
 
 | Line | Kind | Name | Visibility |
 | ---- | ---- | ---- | ---------- |
@@ -346,66 +367,66 @@ Symbol maps for 9 large files in this module.
 | 522 | fn | refreshTraeQuotasInternal | (private) |
 | 532 | fn | refreshKiroQuotasInternal | (private) |
 | 538 | fn | cleanName | (internal) |
-| 586 | fn | startQuotaOnlyAutoRefresh | (private) |
-| 604 | fn | startQuotaAutoRefreshWithoutProxy | (private) |
-| 623 | fn | isWarmupEnabled | (internal) |
-| 627 | fn | warmupStatus | (internal) |
-| 632 | fn | warmupNextRunDate | (internal) |
-| 637 | fn | toggleWarmup | (internal) |
-| 646 | fn | setWarmupEnabled | (internal) |
-| 658 | fn | nextDailyRunDate | (private) |
-| 669 | fn | restartWarmupScheduler | (private) |
-| 702 | fn | runWarmupCycle | (private) |
-| 765 | fn | warmupAccount | (private) |
-| 810 | fn | warmupAccount | (private) |
-| 871 | fn | fetchWarmupModels | (private) |
-| 895 | fn | warmupAvailableModels | (internal) |
-| 908 | fn | warmupAuthInfo | (private) |
-| 930 | fn | warmupTargets | (private) |
-| 944 | fn | updateWarmupStatus | (private) |
-| 973 | fn | startProxy | (internal) |
-| 1017 | fn | stopProxy | (internal) |
-| 1045 | fn | toggleProxy | (internal) |
-| 1053 | fn | setupAPIClient | (private) |
-| 1060 | fn | startAutoRefresh | (private) |
-| 1097 | fn | attemptProxyRecovery | (private) |
-| 1113 | fn | refreshData | (internal) |
-| 1160 | fn | manualRefresh | (internal) |
-| 1171 | fn | refreshAllQuotas | (internal) |
-| 1207 | fn | refreshQuotasUnified | (internal) |
-| 1241 | fn | refreshAntigravityQuotasInternal | (private) |
-| 1261 | fn | refreshAntigravityQuotasWithoutDetect | (private) |
-| 1278 | fn | isAntigravityAccountActive | (internal) |
-| 1283 | fn | switchAntigravityAccount | (internal) |
-| 1293 | fn | beginAntigravitySwitch | (internal) |
-| 1298 | fn | cancelAntigravitySwitch | (internal) |
-| 1303 | fn | dismissAntigravitySwitchResult | (internal) |
-| 1306 | fn | refreshOpenAIQuotasInternal | (private) |
-| 1311 | fn | refreshCopilotQuotasInternal | (private) |
-| 1316 | fn | refreshQuotaForProvider | (internal) |
-| 1351 | fn | refreshAutoDetectedProviders | (internal) |
-| 1358 | fn | startOAuth | (internal) |
-| 1403 | fn | startCopilotAuth | (private) |
-| 1420 | fn | startKiroAuth | (private) |
-| 1460 | fn | pollCopilotAuthCompletion | (private) |
-| 1477 | fn | pollKiroAuthCompletion | (private) |
-| 1500 | fn | pollOAuthStatus | (private) |
-| 1528 | fn | cancelOAuth | (internal) |
-| 1532 | fn | deleteAuthFile | (internal) |
-| 1568 | fn | toggleAuthFileDisabled | (internal) |
-| 1599 | fn | pruneMenuBarItems | (private) |
-| 1635 | fn | importVertexServiceAccount | (internal) |
-| 1659 | fn | fetchAPIKeys | (internal) |
-| 1669 | fn | addAPIKey | (internal) |
-| 1681 | fn | updateAPIKey | (internal) |
-| 1693 | fn | deleteAPIKey | (internal) |
-| 1706 | fn | checkAccountStatusChanges | (private) |
-| 1727 | fn | checkQuotaNotifications | (internal) |
-| 1759 | fn | scanIDEsWithConsent | (internal) |
-| 1829 | fn | savePersistedIDEQuotas | (private) |
-| 1852 | fn | loadPersistedIDEQuotas | (private) |
-| 1914 | fn | shortenAccountKey | (private) |
-| 1926 | struct | OAuthState | (internal) |
+| 610 | fn | startQuotaOnlyAutoRefresh | (private) |
+| 628 | fn | startQuotaAutoRefreshWithoutProxy | (private) |
+| 647 | fn | isWarmupEnabled | (internal) |
+| 651 | fn | warmupStatus | (internal) |
+| 656 | fn | warmupNextRunDate | (internal) |
+| 661 | fn | toggleWarmup | (internal) |
+| 670 | fn | setWarmupEnabled | (internal) |
+| 682 | fn | nextDailyRunDate | (private) |
+| 693 | fn | restartWarmupScheduler | (private) |
+| 726 | fn | runWarmupCycle | (private) |
+| 789 | fn | warmupAccount | (private) |
+| 834 | fn | warmupAccount | (private) |
+| 895 | fn | fetchWarmupModels | (private) |
+| 919 | fn | warmupAvailableModels | (internal) |
+| 932 | fn | warmupAuthInfo | (private) |
+| 954 | fn | warmupTargets | (private) |
+| 968 | fn | updateWarmupStatus | (private) |
+| 997 | fn | startProxy | (internal) |
+| 1041 | fn | stopProxy | (internal) |
+| 1069 | fn | toggleProxy | (internal) |
+| 1077 | fn | setupAPIClient | (private) |
+| 1084 | fn | startAutoRefresh | (private) |
+| 1121 | fn | attemptProxyRecovery | (private) |
+| 1137 | fn | refreshData | (internal) |
+| 1184 | fn | manualRefresh | (internal) |
+| 1195 | fn | refreshAllQuotas | (internal) |
+| 1231 | fn | refreshQuotasUnified | (internal) |
+| 1265 | fn | refreshAntigravityQuotasInternal | (private) |
+| 1285 | fn | refreshAntigravityQuotasWithoutDetect | (private) |
+| 1302 | fn | isAntigravityAccountActive | (internal) |
+| 1307 | fn | switchAntigravityAccount | (internal) |
+| 1317 | fn | beginAntigravitySwitch | (internal) |
+| 1322 | fn | cancelAntigravitySwitch | (internal) |
+| 1327 | fn | dismissAntigravitySwitchResult | (internal) |
+| 1330 | fn | refreshOpenAIQuotasInternal | (private) |
+| 1335 | fn | refreshCopilotQuotasInternal | (private) |
+| 1340 | fn | refreshQuotaForProvider | (internal) |
+| 1375 | fn | refreshAutoDetectedProviders | (internal) |
+| 1382 | fn | startOAuth | (internal) |
+| 1427 | fn | startCopilotAuth | (private) |
+| 1444 | fn | startKiroAuth | (private) |
+| 1484 | fn | pollCopilotAuthCompletion | (private) |
+| 1501 | fn | pollKiroAuthCompletion | (private) |
+| 1524 | fn | pollOAuthStatus | (private) |
+| 1552 | fn | cancelOAuth | (internal) |
+| 1556 | fn | deleteAuthFile | (internal) |
+| 1592 | fn | toggleAuthFileDisabled | (internal) |
+| 1623 | fn | pruneMenuBarItems | (private) |
+| 1659 | fn | importVertexServiceAccount | (internal) |
+| 1683 | fn | fetchAPIKeys | (internal) |
+| 1693 | fn | addAPIKey | (internal) |
+| 1705 | fn | updateAPIKey | (internal) |
+| 1717 | fn | deleteAPIKey | (internal) |
+| 1730 | fn | checkAccountStatusChanges | (private) |
+| 1751 | fn | checkQuotaNotifications | (internal) |
+| 1783 | fn | scanIDEsWithConsent | (internal) |
+| 1853 | fn | savePersistedIDEQuotas | (private) |
+| 1876 | fn | loadPersistedIDEQuotas | (private) |
+| 1938 | fn | shortenAccountKey | (private) |
+| 1950 | struct | OAuthState | (internal) |
 
 ## scripts/capture-screenshots.ts (763 lines)
 

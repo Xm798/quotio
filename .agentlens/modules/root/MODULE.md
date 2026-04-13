@@ -2,7 +2,7 @@
 
 [← Back to INDEX](../../INDEX.md)
 
-**Type:** root | **Files:** 36
+**Type:** root | **Files:** 37
 
 ## Files
 
@@ -16,7 +16,7 @@
 | `Quotio/Services/ChecksumVerifier.swift` | 78 |  |
 | `Quotio/Services/CompatibilityChecker.swift` | 123 |  |
 | `Quotio/Services/CustomProviderService.swift` | 340 |  |
-| `Quotio/Services/DirectAuthFileService.swift` | 493 |  |
+| `Quotio/Services/DirectAuthFileService.swift` | 505 | 📊 |
 | `Quotio/Services/FallbackSettingsManager.swift` | 367 |  |
 | `Quotio/Services/GLMQuotaFetcher.swift` | 186 |  |
 | `Quotio/Services/ImageCacheService.swift` | 131 |  |
@@ -26,7 +26,7 @@
 | `Quotio/Services/Logger.swift` | 124 |  |
 | `Quotio/Services/ManagementAPIClient.swift` | 732 | 📊 |
 | `Quotio/Services/NotificationManager.swift` | 334 |  |
-| `Quotio/Services/Proxy/CLIProxyManager.swift` | 1979 | 📊 |
+| `Quotio/Services/Proxy/CLIProxyManager.swift` | 2018 | 📊 |
 | `Quotio/Services/Proxy/FallbackFormatConverter.swift` | 109 |  |
 | `Quotio/Services/Proxy/ProxyBridge.swift` | 1093 | 📊 |
 | `Quotio/Services/Proxy/ProxyStorageManager.swift` | 402 |  |
@@ -34,7 +34,7 @@
 | `Quotio/Services/RequestTracker.swift` | 192 |  |
 | `Quotio/Services/ShellProfileManager.swift` | 121 |  |
 | `Quotio/Services/StatusBarManager.swift` | 272 |  |
-| `Quotio/Services/StatusBarMenuBuilder.swift` | 1470 | 📊 |
+| `Quotio/Services/StatusBarMenuBuilder.swift` | 1697 | 📊 |
 | `Quotio/Services/Tunnel/CloudflaredService.swift` | 266 |  |
 | `Quotio/Services/Tunnel/TunnelManager.swift` | 254 |  |
 | `Quotio/Services/UpdaterService.swift` | 168 |  |
@@ -42,7 +42,8 @@
 | `Quotio/Services/WarpService.swift` | 83 |  |
 | `Quotio/ViewModels/AgentSetupViewModel.swift` | 456 |  |
 | `Quotio/ViewModels/LogsViewModel.swift` | 82 |  |
-| `Quotio/ViewModels/QuotaViewModel.swift` | 1936 | 📊 |
+| `Quotio/ViewModels/QuotaViewModel.swift` | 1960 | 📊 |
+| `Quotio/Views/Auth/KiroLoginView.swift` | 485 |  |
 | `scripts/capture-screenshots.ts` | 763 | 📊 |
 
 ## Documentation

@@ -4,9 +4,9 @@
 
 ## Overview
 
-- **Lines:** 1470
+- **Lines:** 1697
 - **Language:** Swift
-- **Symbols:** 46
+- **Symbols:** 47
 - **Public symbols:** 0
 
 ## Symbol Table
@@ -43,20 +43,21 @@
 | 642 | fn | copyButton | (private) | `@ViewBuilder   private func copyButton(isCopied...` |
 | 659 | struct | MenuAccountCardView | (private) | `struct MenuAccountCardView` |
 | 698 | fn | planConfig | (private) | `private func planConfig(for planName: String) -...` |
-| 930 | fn | formatLocalTime | (private) | `private func formatLocalTime(_ isoString: Strin...` |
-| 949 | struct | ModelBadgeData | (private) | `struct ModelBadgeData` |
-| 988 | struct | AntigravityDisplayGroup | (private) | `struct AntigravityDisplayGroup` |
-| 995 | fn | menuDisplayPercent | (private) | `private func menuDisplayPercent(remainingPercen...` |
-| 999 | fn | menuStatusColor | (private) | `private func menuStatusColor(remainingPercent: ...` |
-| 1017 | struct | LowestBarLayout | (private) | `struct LowestBarLayout` |
-| 1097 | struct | RingGridLayout | (private) | `struct RingGridLayout` |
-| 1141 | struct | CardGridLayout | (private) | `struct CardGridLayout` |
-| 1190 | struct | ModernProgressBar | (private) | `struct ModernProgressBar` |
-| 1225 | struct | PercentageBadge | (private) | `struct PercentageBadge` |
-| 1261 | struct | MenuModelDetailView | (private) | `struct MenuModelDetailView` |
-| 1313 | struct | MenuEmptyStateView | (private) | `struct MenuEmptyStateView` |
-| 1328 | struct | MenuViewMoreAccountsView | (private) | `struct MenuViewMoreAccountsView` |
-| 1376 | mod | extension AIProvider | (private) | - |
-| 1398 | struct | MenuActionsView | (private) | `struct MenuActionsView` |
-| 1436 | struct | MenuBarActionButton | (private) | `struct MenuBarActionButton` |
+| 942 | fn | formatLocalTime | (private) | `private func formatLocalTime(_ isoString: Strin...` |
+| 960 | struct | ModelBadgeData | (private) | `struct ModelBadgeData` |
+| 1011 | struct | AntigravityDisplayGroup | (private) | `struct AntigravityDisplayGroup` |
+| 1018 | fn | menuDisplayPercent | (private) | `private func menuDisplayPercent(remainingPercen...` |
+| 1022 | fn | menuStatusColor | (private) | `private func menuStatusColor(remainingPercent: ...` |
+| 1040 | struct | LowestBarLayout | (private) | `struct LowestBarLayout` |
+| 1164 | struct | RingGridLayout | (private) | `struct RingGridLayout` |
+| 1208 | struct | CardGridLayout | (private) | `struct CardGridLayout` |
+| 1276 | struct | ModernProgressBar | (private) | `struct ModernProgressBar` |
+| 1312 | struct | MenuOverageProgressBar | (private) | `struct MenuOverageProgressBar` |
+| 1381 | struct | PercentageBadge | (private) | `struct PercentageBadge` |
+| 1417 | struct | MenuModelDetailView | (private) | `struct MenuModelDetailView` |
+| 1469 | struct | MenuEmptyStateView | (private) | `struct MenuEmptyStateView` |
+| 1484 | struct | MenuViewMoreAccountsView | (private) | `struct MenuViewMoreAccountsView` |
+| 1532 | mod | extension AIProvider | (private) | - |
+| 1554 | struct | MenuActionsView | (private) | `struct MenuActionsView` |
+| 1592 | struct | MenuBarActionButton | (private) | `struct MenuBarActionButton` |
 

@@ -4,7 +4,7 @@
 
 ## Overview
 
-- **Lines:** 1979
+- **Lines:** 2018
 - **Language:** Swift
 - **Symbols:** 64
 - **Public symbols:** 0
@@ -49,34 +49,34 @@
 | 1140 | fn | revealInFinder | (internal) | `func revealInFinder()` |
 | 1147 | enum | ProxyError | (internal) | `enum ProxyError` |
 | 1178 | enum | AuthCommand | (internal) | `enum AuthCommand` |
-| 1216 | struct | AuthCommandResult | (internal) | `struct AuthCommandResult` |
-| 1222 | mod | extension CLIProxyManager | (internal) | - |
-| 1223 | fn | runAuthCommand | (internal) | `func runAuthCommand(_ command: AuthCommand) asy...` |
-| 1255 | fn | appendOutput | (internal) | `func appendOutput(_ str: String)` |
-| 1259 | fn | tryResume | (internal) | `func tryResume() -> Bool` |
-| 1270 | fn | safeResume | (internal) | `@Sendable func safeResume(_ result: AuthCommand...` |
-| 1370 | mod | extension CLIProxyManager | (internal) | - |
-| 1400 | fn | checkForUpgrade | (internal) | `func checkForUpgrade() async` |
-| 1451 | fn | saveInstalledVersion | (private) | `private func saveInstalledVersion(_ version: St...` |
-| 1459 | fn | fetchAvailableReleases | (internal) | `func fetchAvailableReleases(limit: Int = 10) as...` |
-| 1481 | fn | versionInfo | (internal) | `func versionInfo(from release: GitHubRelease) -...` |
-| 1487 | fn | fetchGitHubRelease | (private) | `private func fetchGitHubRelease(tag: String) as...` |
-| 1509 | fn | findCompatibleAsset | (private) | `private func findCompatibleAsset(from release: ...` |
-| 1542 | fn | performManagedUpgrade | (internal) | `func performManagedUpgrade(to version: ProxyVer...` |
-| 1600 | fn | downloadAndInstallVersion | (private) | `private func downloadAndInstallVersion(_ versio...` |
-| 1647 | fn | startDryRun | (private) | `private func startDryRun(version: String) async...` |
-| 1718 | fn | promote | (private) | `private func promote(version: String) async throws` |
-| 1753 | fn | rollback | (internal) | `func rollback() async throws` |
-| 1786 | fn | stopTestProxy | (private) | `private func stopTestProxy() async` |
-| 1815 | fn | stopTestProxySync | (private) | `private func stopTestProxySync()` |
-| 1841 | fn | findUnusedPort | (private) | `private func findUnusedPort() throws -> UInt16` |
-| 1851 | fn | isPortInUse | (private) | `private func isPortInUse(_ port: UInt16) -> Bool` |
-| 1870 | fn | createTestConfig | (private) | `private func createTestConfig(port: UInt16) -> ...` |
-| 1898 | fn | cleanupTestConfig | (private) | `private func cleanupTestConfig(_ configPath: St...` |
-| 1906 | fn | isNewerVersion | (private) | `private func isNewerVersion(_ newer: String, th...` |
-| 1909 | fn | parseVersion | (internal) | `func parseVersion(_ version: String) -> [Int]` |
-| 1941 | fn | findPreviousVersion | (private) | `private func findPreviousVersion() -> String?` |
-| 1954 | fn | migrateToVersionedStorage | (internal) | `func migrateToVersionedStorage() async throws` |
+| 1238 | struct | AuthCommandResult | (internal) | `struct AuthCommandResult` |
+| 1244 | mod | extension CLIProxyManager | (internal) | - |
+| 1245 | fn | runAuthCommand | (internal) | `func runAuthCommand(_ command: AuthCommand) asy...` |
+| 1277 | fn | appendOutput | (internal) | `func appendOutput(_ str: String)` |
+| 1281 | fn | tryResume | (internal) | `func tryResume() -> Bool` |
+| 1292 | fn | safeResume | (internal) | `@Sendable func safeResume(_ result: AuthCommand...` |
+| 1409 | mod | extension CLIProxyManager | (internal) | - |
+| 1439 | fn | checkForUpgrade | (internal) | `func checkForUpgrade() async` |
+| 1490 | fn | saveInstalledVersion | (private) | `private func saveInstalledVersion(_ version: St...` |
+| 1498 | fn | fetchAvailableReleases | (internal) | `func fetchAvailableReleases(limit: Int = 10) as...` |
+| 1520 | fn | versionInfo | (internal) | `func versionInfo(from release: GitHubRelease) -...` |
+| 1526 | fn | fetchGitHubRelease | (private) | `private func fetchGitHubRelease(tag: String) as...` |
+| 1548 | fn | findCompatibleAsset | (private) | `private func findCompatibleAsset(from release: ...` |
+| 1581 | fn | performManagedUpgrade | (internal) | `func performManagedUpgrade(to version: ProxyVer...` |
+| 1639 | fn | downloadAndInstallVersion | (private) | `private func downloadAndInstallVersion(_ versio...` |
+| 1686 | fn | startDryRun | (private) | `private func startDryRun(version: String) async...` |
+| 1757 | fn | promote | (private) | `private func promote(version: String) async throws` |
+| 1792 | fn | rollback | (internal) | `func rollback() async throws` |
+| 1825 | fn | stopTestProxy | (private) | `private func stopTestProxy() async` |
+| 1854 | fn | stopTestProxySync | (private) | `private func stopTestProxySync()` |
+| 1880 | fn | findUnusedPort | (private) | `private func findUnusedPort() throws -> UInt16` |
+| 1890 | fn | isPortInUse | (private) | `private func isPortInUse(_ port: UInt16) -> Bool` |
+| 1909 | fn | createTestConfig | (private) | `private func createTestConfig(port: UInt16) -> ...` |
+| 1937 | fn | cleanupTestConfig | (private) | `private func cleanupTestConfig(_ configPath: St...` |
+| 1945 | fn | isNewerVersion | (private) | `private func isNewerVersion(_ newer: String, th...` |
+| 1948 | fn | parseVersion | (internal) | `func parseVersion(_ version: String) -> [Int]` |
+| 1980 | fn | findPreviousVersion | (private) | `private func findPreviousVersion() -> String?` |
+| 1993 | fn | migrateToVersionedStorage | (internal) | `func migrateToVersionedStorage() async throws` |
 
 ## Memory Markers
 
@@ -88,7 +88,7 @@
 
 > Changes take effect after proxy restart (CLIProxyAPI does not support live routing API)
 
-### 🟢 `NOTE` (line 1434)
+### 🟢 `NOTE` (line 1473)
 
 > Notification is handled by AtomFeedUpdateService polling
 

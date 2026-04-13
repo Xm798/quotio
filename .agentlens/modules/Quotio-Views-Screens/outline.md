@@ -4,21 +4,21 @@
 
 Symbol maps for 6 large files in this module.
 
-## Quotio/Views/Screens/DashboardScreen.swift (1014 lines)
+## Quotio/Views/Screens/DashboardScreen.swift (1029 lines)
 
 | Line | Kind | Name | Visibility |
 | ---- | ---- | ---- | ---------- |
 | 9 | struct | DashboardScreen | (internal) |
-| 572 | fn | handleStepAction | (private) |
-| 583 | fn | showProviderPicker | (private) |
-| 607 | fn | showAgentPicker | (private) |
-| 808 | struct | GettingStartedStep | (internal) |
-| 817 | struct | GettingStartedStepRow | (internal) |
-| 872 | struct | KPICard | (internal) |
-| 900 | struct | ProviderChip | (internal) |
-| 924 | struct | FlowLayout | (internal) |
-| 938 | fn | layout | (private) |
-| 966 | struct | QuotaProviderRow | (internal) |
+| 585 | fn | handleStepAction | (private) |
+| 596 | fn | showProviderPicker | (private) |
+| 622 | fn | showAgentPicker | (private) |
+| 823 | struct | GettingStartedStep | (internal) |
+| 832 | struct | GettingStartedStepRow | (internal) |
+| 887 | struct | KPICard | (internal) |
+| 915 | struct | ProviderChip | (internal) |
+| 939 | struct | FlowLayout | (internal) |
+| 953 | fn | layout | (private) |
+| 981 | struct | QuotaProviderRow | (internal) |
 
 ## Quotio/Views/Screens/FallbackScreen.swift (558 lines)
 
@@ -41,39 +41,39 @@ Symbol maps for 6 large files in this module.
 | 501 | struct | StatItem | (internal) |
 | 518 | struct | LogRow | (internal) |
 
-## Quotio/Views/Screens/ProvidersScreen.swift (1043 lines)
+## Quotio/Views/Screens/ProvidersScreen.swift (1047 lines)
 
 | Line | Kind | Name | Visibility |
 | ---- | ---- | ---- | ---------- |
 | 16 | struct | ProvidersScreen | (internal) |
-| 376 | fn | handleAddProvider | (private) |
-| 394 | fn | deleteAccount | (private) |
-| 424 | fn | toggleAccountDisabled | (private) |
-| 434 | fn | handleEditGlmAccount | (private) |
-| 441 | fn | handleEditWarpAccount | (private) |
-| 449 | fn | syncCustomProvidersToConfig | (private) |
-| 459 | struct | CustomProviderRow | (internal) |
-| 560 | struct | MenuBarBadge | (internal) |
-| 583 | class | TooltipWindow | (private) |
-| 595 | method | init | (private) |
-| 625 | fn | show | (internal) |
-| 654 | fn | hide | (internal) |
-| 660 | class | TooltipTrackingView | (private) |
-| 662 | fn | updateTrackingAreas | (internal) |
-| 673 | fn | mouseEntered | (internal) |
-| 677 | fn | mouseExited | (internal) |
-| 681 | fn | hitTest | (internal) |
-| 687 | struct | NativeTooltipView | (private) |
-| 689 | fn | makeNSView | (internal) |
-| 695 | fn | updateNSView | (internal) |
-| 701 | mod | extension View | (private) |
-| 702 | fn | nativeTooltip | (internal) |
-| 709 | struct | MenuBarHintView | (internal) |
-| 724 | struct | OAuthSheet | (internal) |
-| 850 | struct | OAuthStatusView | (private) |
-| 1022 | enum | CustomProviderSheetMode | (internal) |
+| 393 | fn | handleAddProvider | (private) |
+| 415 | fn | deleteAccount | (private) |
+| 445 | fn | toggleAccountDisabled | (private) |
+| 455 | fn | handleEditGlmAccount | (private) |
+| 462 | fn | handleEditWarpAccount | (private) |
+| 470 | fn | syncCustomProvidersToConfig | (private) |
+| 480 | struct | CustomProviderRow | (internal) |
+| 581 | struct | MenuBarBadge | (internal) |
+| 604 | class | TooltipWindow | (private) |
+| 616 | method | init | (private) |
+| 646 | fn | show | (internal) |
+| 675 | fn | hide | (internal) |
+| 681 | class | TooltipTrackingView | (private) |
+| 683 | fn | updateTrackingAreas | (internal) |
+| 694 | fn | mouseEntered | (internal) |
+| 698 | fn | mouseExited | (internal) |
+| 702 | fn | hitTest | (internal) |
+| 708 | struct | NativeTooltipView | (private) |
+| 710 | fn | makeNSView | (internal) |
+| 716 | fn | updateNSView | (internal) |
+| 722 | mod | extension View | (private) |
+| 723 | fn | nativeTooltip | (internal) |
+| 730 | struct | MenuBarHintView | (internal) |
+| 745 | struct | OAuthSheet | (internal) |
+| 854 | struct | OAuthStatusView | (private) |
+| 1026 | enum | CustomProviderSheetMode | (internal) |
 
-## Quotio/Views/Screens/QuotaScreen.swift (1627 lines)
+## Quotio/Views/Screens/QuotaScreen.swift (2254 lines)
 
 | Line | Kind | Name | Visibility |
 | ---- | ---- | ---- | ---------- |
@@ -88,24 +88,33 @@ Symbol maps for 6 large files in this module.
 | 337 | struct | ProviderQuotaView | (private) |
 | 419 | struct | AccountInfo | (private) |
 | 431 | struct | AccountQuotaCardV2 | (private) |
-| 843 | fn | standardContentByStyle | (private) |
-| 871 | struct | PlanBadgeV2Compact | (private) |
-| 925 | struct | PlanBadgeV2 | (private) |
-| 980 | struct | SubscriptionBadgeV2 | (private) |
-| 1021 | struct | AntigravityDisplayGroup | (private) |
-| 1031 | struct | AntigravityGroupRow | (private) |
-| 1108 | struct | AntigravityLowestBarLayout | (private) |
-| 1127 | fn | displayPercent | (private) |
-| 1189 | struct | AntigravityRingLayout | (private) |
-| 1201 | fn | displayPercent | (private) |
-| 1230 | struct | StandardLowestBarLayout | (private) |
-| 1249 | fn | displayPercent | (private) |
-| 1322 | struct | StandardRingLayout | (private) |
-| 1334 | fn | displayPercent | (private) |
-| 1369 | struct | AntigravityModelsDetailSheet | (private) |
-| 1438 | struct | ModelDetailCard | (private) |
-| 1505 | struct | UsageRowV2 | (private) |
-| 1593 | struct | QuotaLoadingView | (private) |
+| 830 | fn | kiroContentByStyle | (private) |
+| 862 | fn | standardContentByStyle | (private) |
+| 890 | struct | PlanBadgeV2Compact | (private) |
+| 944 | struct | PlanBadgeV2 | (private) |
+| 999 | struct | SubscriptionBadgeV2 | (private) |
+| 1038 | struct | AntigravityDisplayGroup | (private) |
+| 1048 | struct | AntigravityGroupRow | (private) |
+| 1125 | struct | AntigravityLowestBarLayout | (private) |
+| 1144 | fn | displayPercent | (private) |
+| 1206 | struct | AntigravityRingLayout | (private) |
+| 1218 | fn | displayPercent | (private) |
+| 1247 | struct | StandardLowestBarLayout | (private) |
+| 1266 | fn | displayPercent | (private) |
+| 1339 | struct | StandardRingLayout | (private) |
+| 1351 | fn | displayPercent | (private) |
+| 1386 | struct | AntigravityModelsDetailSheet | (private) |
+| 1455 | struct | ModelDetailCard | (private) |
+| 1522 | struct | UsageRowV2 | (private) |
+| 1610 | struct | KiroCreditUsageBar | (private) |
+| 1721 | fn | legendItem | (private) |
+| 1735 | struct | KiroOverageSection | (private) |
+| 1805 | struct | KiroLowestBarLayout | (private) |
+| 1813 | fn | overage | (private) |
+| 1927 | struct | KiroRingLayout | (private) |
+| 1935 | fn | overage | (private) |
+| 2024 | struct | KiroUsageRow | (private) |
+| 2108 | struct | QuotaLoadingView | (private) |
 
 ## Quotio/Views/Screens/SettingsScreen.swift (3051 lines)
 

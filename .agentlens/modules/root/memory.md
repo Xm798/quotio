@@ -39,7 +39,7 @@
 
 > Changes take effect after proxy restart (CLIProxyAPI does not support live routing API)
 
-### `NOTE` (Quotio/Services/Proxy/CLIProxyManager.swift:1434)
+### `NOTE` (Quotio/Services/Proxy/CLIProxyManager.swift:1473)
 
 > Notification is handled by AtomFeedUpdateService polling
 
@@ -59,19 +59,19 @@
 
 > Cursor and Trae removed from auto-refresh to address privacy concerns (issue #29)
 
-### `NOTE` (Quotio/ViewModels/QuotaViewModel.swift:1181)
+### `NOTE` (Quotio/ViewModels/QuotaViewModel.swift:1205)
 
 > Cursor and Trae removed from auto-refresh (issue #29)
 
-### `NOTE` (Quotio/ViewModels/QuotaViewModel.swift:1206)
+### `NOTE` (Quotio/ViewModels/QuotaViewModel.swift:1230)
 
 > Cursor and Trae require explicit user scan (issue #29)
 
-### `NOTE` (Quotio/ViewModels/QuotaViewModel.swift:1216)
+### `NOTE` (Quotio/ViewModels/QuotaViewModel.swift:1240)
 
 > Cursor and Trae removed - require explicit scan (issue #29)
 
-### `NOTE` (Quotio/ViewModels/QuotaViewModel.swift:1271)
+### `NOTE` (Quotio/ViewModels/QuotaViewModel.swift:1295)
 
 > Don't call detectActiveAccount() here - already set by switch operation
 

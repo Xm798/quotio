@@ -4,7 +4,7 @@
 
 ## Overview
 
-- **Lines:** 1014
+- **Lines:** 1029
 - **Language:** Swift
 - **Symbols:** 11
 - **Public symbols:** 0
@@ -14,14 +14,14 @@
 | Line | Kind | Name | Visibility | Signature |
 | ---- | ---- | ---- | ---------- | --------- |
 | 9 | struct | DashboardScreen | (internal) | `struct DashboardScreen` |
-| 572 | fn | handleStepAction | (private) | `private func handleStepAction(_ step: GettingSt...` |
-| 583 | fn | showProviderPicker | (private) | `private func showProviderPicker()` |
-| 607 | fn | showAgentPicker | (private) | `private func showAgentPicker()` |
-| 808 | struct | GettingStartedStep | (internal) | `struct GettingStartedStep` |
-| 817 | struct | GettingStartedStepRow | (internal) | `struct GettingStartedStepRow` |
-| 872 | struct | KPICard | (internal) | `struct KPICard` |
-| 900 | struct | ProviderChip | (internal) | `struct ProviderChip` |
-| 924 | struct | FlowLayout | (internal) | `struct FlowLayout` |
-| 938 | fn | layout | (private) | `private func layout(proposal: ProposedViewSize,...` |
-| 966 | struct | QuotaProviderRow | (internal) | `struct QuotaProviderRow` |
+| 585 | fn | handleStepAction | (private) | `private func handleStepAction(_ step: GettingSt...` |
+| 596 | fn | showProviderPicker | (private) | `private func showProviderPicker()` |
+| 622 | fn | showAgentPicker | (private) | `private func showAgentPicker()` |
+| 823 | struct | GettingStartedStep | (internal) | `struct GettingStartedStep` |
+| 832 | struct | GettingStartedStepRow | (internal) | `struct GettingStartedStepRow` |
+| 887 | struct | KPICard | (internal) | `struct KPICard` |
+| 915 | struct | ProviderChip | (internal) | `struct ProviderChip` |
+| 939 | struct | FlowLayout | (internal) | `struct FlowLayout` |
+| 953 | fn | layout | (private) | `private func layout(proposal: ProposedViewSize,...` |
+| 981 | struct | QuotaProviderRow | (internal) | `struct QuotaProviderRow` |
 
