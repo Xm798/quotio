@@ -26,6 +26,7 @@ struct ProvidersScreen: View {
     @State private var showAddProviderPopover = false
     @State private var switchingAccount: AccountRowData?
     @State private var modeManager = OperatingModeManager.shared
+    @State private var showKiroLoginSheet = false
 
     private let customProviderService = CustomProviderService.shared
     private let warpService = WarpService.shared
@@ -141,11 +142,15 @@ struct ProvidersScreen: View {
             toolbarContent
         }
         .sheet(item: $selectedProvider) { provider in
-            OAuthSheet(provider: provider, projectId: $projectId) {
+            OAuthSheet(provider: provider, projectId: $projectId, onDismiss: {
                 selectedProvider = nil
                 projectId = ""
                 viewModel.oauthState = nil
-            }
+            }, onKiroNativeLogin: {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    showKiroLoginSheet = true
+                }
+            })
             .environment(viewModel)
         }
         .fileImporter(
@@ -225,8 +230,20 @@ struct ProvidersScreen: View {
             )
             .environment(viewModel)
         }
+        .sheet(isPresented: $showKiroLoginSheet) {
+            KiroLoginView { _ in
+                Task {
+                    if modeManager.isLocalProxyMode && viewModel.proxyManager.proxyStatus.running {
+                        await viewModel.refreshData()
+                    } else {
+                        await viewModel.loadDirectAuthFiles()
+                    }
+                    await viewModel.refreshQuotaForProvider(.kiro)
+                }
+            }
+        }
     }
-    
+
     // MARK: - Toolbar
     
     @ToolbarContentBuilder
@@ -375,9 +392,13 @@ struct ProvidersScreen: View {
     // MARK: - Helper Functions
 
     private func handleAddProvider(_ provider: AIProvider) {
-        // In Local Proxy Mode, require proxy to be running for OAuth
         if modeManager.isLocalProxyMode && !viewModel.proxyManager.proxyStatus.running {
             showProxyRequiredAlert = true
+            return
+        }
+
+        if provider == .kiro {
+            showKiroLoginSheet = true
             return
         }
 
@@ -726,40 +747,36 @@ struct OAuthSheet: View {
     let provider: AIProvider
     @Binding var projectId: String
     let onDismiss: () -> Void
-    
+    var onKiroNativeLogin: (() -> Void)? = nil
+
     @State private var hasStartedAuth = false
-    @State private var selectedKiroMethod: AuthCommand = .kiroImport
-    
+
     private var isPolling: Bool {
         viewModel.oauthState?.status == .polling || viewModel.oauthState?.status == .waiting
     }
-    
+
     private var isSuccess: Bool {
         viewModel.oauthState?.status == .success
     }
-    
+
     private var isError: Bool {
         viewModel.oauthState?.status == .error
     }
-    
-    private var kiroAuthMethods: [AuthCommand] {
-        [.kiroImport, .kiroGoogleLogin, .kiroAWSAuthCode, .kiroAWSLogin]
-    }
-    
+
     var body: some View {
         VStack(spacing: 28) {
             ProviderIcon(provider: provider, size: 64)
-            
+
             VStack(spacing: 8) {
                 Text("oauth.connect".localized() + " " + provider.displayName)
                     .font(.title2)
                     .fontWeight(.bold)
-                
+
                 Text("oauth.authenticateWith".localized() + " " + provider.displayName)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
-            
+
             if provider == .gemini {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("oauth.projectId".localized())
@@ -770,42 +787,24 @@ struct OAuthSheet: View {
                 }
                 .frame(maxWidth: 320)
             }
-            
-            if provider == .kiro {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("oauth.authMethod".localized())
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    Picker("", selection: $selectedKiroMethod) {
-                        ForEach(kiroAuthMethods, id: \.self) { method in
-                            Text(method.displayName).tag(method)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
-                    
 
-                }
-                .frame(maxWidth: 320)
-            }
-            
             if let state = viewModel.oauthState, state.provider == provider {
                 OAuthStatusView(status: state.status, error: state.error, state: state.state, authURL: state.authURL, provider: provider)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
-            
+
             HStack(spacing: 16) {
                 Button("action.cancel".localized(), role: .cancel) {
                     viewModel.cancelOAuth()
                     onDismiss()
                 }
                 .buttonStyle(.bordered)
-                
+
                 if isError {
                     Button {
                         hasStartedAuth = false
                         Task {
-                            await viewModel.startOAuth(for: provider, projectId: projectId.isEmpty ? nil : projectId, authMethod: provider == .kiro ? selectedKiroMethod : nil)
+                            await viewModel.startOAuth(for: provider, projectId: projectId.isEmpty ? nil : projectId, authMethod: nil)
                         }
                     } label: {
                         Label("oauth.retry".localized(), systemImage: "arrow.clockwise")
@@ -814,9 +813,14 @@ struct OAuthSheet: View {
                     .tint(.orange)
                 } else if !isSuccess {
                     Button {
-                        hasStartedAuth = true
-                        Task {
-                            await viewModel.startOAuth(for: provider, projectId: projectId.isEmpty ? nil : projectId, authMethod: provider == .kiro ? selectedKiroMethod : nil)
+                        if provider == .kiro {
+                            onDismiss()
+                            onKiroNativeLogin?()
+                        } else {
+                            hasStartedAuth = true
+                            Task {
+                                await viewModel.startOAuth(for: provider, projectId: projectId.isEmpty ? nil : projectId, authMethod: nil)
+                            }
                         }
                     } label: {
                         if isPolling {

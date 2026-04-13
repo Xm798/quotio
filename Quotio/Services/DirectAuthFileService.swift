@@ -339,17 +339,19 @@ actor DirectAuthFileService {
 
                 var clientId = json["client_id"] as? String
                 var clientSecret = json["client_secret"] as? String
+                var deviceRegRegion: String?
 
                 // For IdC auth, if clientId/clientSecret are missing, try to load from AWS SSO cache
                 // Social auth (Google) doesn't need these credentials
                 // Use case-insensitive comparison since CLIProxyAPI stores as "idc" (lowercase)
                 if authMethod.lowercased() == "idc" && (clientId == nil || clientSecret == nil) {
-                    let (loadedClientId, loadedClientSecret) = loadKiroDeviceRegistration()
+                    let (loadedClientId, loadedClientSecret, loadedRegion) = loadKiroDeviceRegistration()
                     if let cid = loadedClientId, let csec = loadedClientSecret {
                         clientId = cid
                         clientSecret = csec
-                        // Persist to auth file for future use
-                        updateKiroAuthFile(at: file.filePath, withClientId: cid, clientSecret: csec)
+                        deviceRegRegion = loadedRegion
+                        // Persist to auth file for future use 
+                        updateKiroAuthFile(at: file.filePath, withClientId: cid, clientSecret: csec, region: loadedRegion)
                     }
                 }
 
@@ -357,8 +359,14 @@ actor DirectAuthFileService {
                 if let startUrl = json["start_url"] as? String ?? json["startUrl"] as? String {
                     extras["start_url"] = startUrl
                 }
+                // Prefer region from auth file, but fall back to device registration region
                 if let region = json["region"] as? String {
                     extras["region"] = region
+                } else if let devRegion = deviceRegRegion {
+                    extras["region"] = devRegion
+                }
+                if let profileArn = json["profile_arn"] as? String ?? json["profileArn"] as? String {
+                    extras["profileArn"] = profileArn
                 }
                 if let profileArn = json["profile_arn"] as? String ?? json["profileArn"] as? String {
                     extras["profileArn"] = profileArn
@@ -387,11 +395,11 @@ actor DirectAuthFileService {
 
     // MARK: - Kiro Builder ID Device Registration Support
 
-    /// Load clientId and clientSecret from Kiro IDE device registration file
+    /// Load clientId, clientSecret, and region from Kiro IDE device registration file
     /// Kiro IDE stores these in ~/.aws/sso/cache/{clientIdHash}.json
     /// The clientIdHash is found in ~/.aws/sso/cache/kiro-auth-token.json
-    /// - Returns: Tuple of (clientId?, clientSecret?)
-    private func loadKiroDeviceRegistration() -> (clientId: String?, clientSecret: String?) {
+    /// - Returns: Tuple of (clientId?, clientSecret?, region?)
+    private func loadKiroDeviceRegistration() -> (clientId: String?, clientSecret: String?, region: String?) {
         let cachePath = expandPath("~/.aws/sso/cache")
 
         // First, try to get clientIdHash from kiro-auth-token.json
@@ -411,7 +419,8 @@ actor DirectAuthFileService {
                let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let clientId = json["clientId"] as? String,
                let clientSecret = json["clientSecret"] as? String {
-                return (clientId, clientSecret)
+                let region = json["region"] as? String
+                return (clientId, clientSecret, region)
             }
         }
 
@@ -424,22 +433,23 @@ actor DirectAuthFileService {
                    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                    let clientId = json["clientId"] as? String,
                    let clientSecret = json["clientSecret"] as? String {
-                    // Found a device registration file
-                    return (clientId, clientSecret)
+                    let region = json["region"] as? String
+                    return (clientId, clientSecret, region)
                 }
             }
         }
 
-        return (nil, nil)
+        return (nil, nil, nil)
     }
 
-    /// Update Kiro auth file with clientId and clientSecret
+    /// Update Kiro auth file with clientId, clientSecret, and optionally region
     /// This modifies the auth file in place to include missing credentials
     /// - Parameters:
     ///   - filePath: Path to auth file to update
     ///   - clientId: The clientId to add
     ///   - clientSecret: The clientSecret to add
-    private func updateKiroAuthFile(at filePath: String, withClientId clientId: String, clientSecret: String) {
+    ///   - region: Optional region from device registration
+    private func updateKiroAuthFile(at filePath: String, withClientId clientId: String, clientSecret: String, region: String? = nil) {
         guard let data = fileManager.contents(atPath: filePath),
               var json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             return
@@ -448,6 +458,11 @@ actor DirectAuthFileService {
         // Add missing fields
         json["client_id"] = clientId
         json["client_secret"] = clientSecret
+
+        // Add region if provided and not already present
+        if let region = region, json["region"] == nil {
+            json["region"] = region
+        }
 
         // Write back to file atomically
         do {
