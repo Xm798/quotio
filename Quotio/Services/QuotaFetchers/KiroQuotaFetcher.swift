@@ -180,7 +180,7 @@ actor KiroQuotaFetcher {
     private let fingerprintConfig: KiroFingerprintConfig?
 
     // Kiro IDE version — overridden by fingerprint config if present
-    private var kiroVersion: String { fingerprintConfig?.kiroVersion ?? "0.10.32" }
+    private var kiroVersion: String { fingerprintConfig?.kiroVersion ?? "0.11.131" }
     /// Generate account-based machine ID using clientId/refreshToken, falling back to hardware UUID
     /// If fingerprint config has kiro-hash set, use that directly.
     private var machineIdCache: [String: String] = [:]
@@ -227,7 +227,7 @@ actor KiroQuotaFetcher {
         let sdkVer = fp?.runtimeSDKVersion ?? "1.0.0"
         let os = fp?.osType ?? "darwin"
         let osVer = fp?.osVersion ?? darwinVersion
-        let node = fp?.nodeVersion ?? "22.21.1"
+        let node = fp?.nodeVersion ?? "22.22.0"
         return "aws-sdk-js/\(sdkVer) ua/2.1 os/\(os)#\(osVer) lang/js md/nodejs#\(node) api/codewhispererruntime#\(sdkVer) m/N,E KiroIDE-\(kiroVersion)-\(mid)"
     }
 
