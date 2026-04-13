@@ -228,19 +228,6 @@ nonisolated enum AIProvider: String, CaseIterable, Codable, Identifiable {
     }
 }
 
-// MARK: - Kiro Auth Credentials
-
-/// Credentials returned from Kiro authentication flow
-nonisolated struct KiroAuthCredentials: Sendable {
-    let accessToken: String
-    let refreshToken: String?
-    let expiresAt: Date
-    let clientId: String
-    let clientSecret: String
-    let authMethod: String
-    let region: String
-}
-
 // MARK: - Proxy Status
 
 nonisolated struct ProxyStatus: Codable {

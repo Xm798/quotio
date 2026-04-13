@@ -84,12 +84,6 @@ actor KiroQuotaFetcher {
         return _overageCache[key]
     }
 
-    static func clearOverageCache() {
-        cacheLock.lock()
-        _overageCache.removeAll()
-        cacheLock.unlock()
-    }
-
     // Default region for usage endpoint (most users are on us-east-1)
     private let defaultRegion = "us-east-1"
 
@@ -191,10 +185,8 @@ actor KiroQuotaFetcher {
         let allFiles = await authService.scanAllAuthFiles()
         let kiroFiles = allFiles.filter { $0.provider == .kiro }
 
-        // Clear stale overage data before fetching fresh data for all accounts
-        KiroQuotaFetcher.clearOverageCache()
-
-        // Parallel fetching
+        // Parallel fetching — overage cache entries are overwritten per-model during fetch,
+        // so stale entries for removed accounts are harmless (never looked up)
         return await withTaskGroup(of: (String, ProviderQuotaData?).self) { group in
             for authFile in kiroFiles {
                 group.addTask {

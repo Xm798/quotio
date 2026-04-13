@@ -125,7 +125,7 @@ struct DashboardScreen: View {
             .environment(viewModel)
         }
         .sheet(isPresented: $showKiroLoginSheet) {
-            KiroLoginView { _ in
+            KiroLoginView {
                 Task {
                     await viewModel.refreshData()
                     await viewModel.refreshQuotaForProvider(.kiro)

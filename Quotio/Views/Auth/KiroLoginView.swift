@@ -72,7 +72,7 @@ enum KiroLoginState: Equatable {
 struct KiroLoginView: View {
     @Environment(\.dismiss) private var dismiss
 
-    let onSuccess: (KiroAuthCredentials) -> Void
+    let onSuccess: () -> Void
 
     @State private var state: KiroLoginState = .selectingMethod
     @State private var authTask: Task<Void, Never>?
@@ -459,17 +459,7 @@ struct KiroLoginView: View {
 
                 await MainActor.run {
                     state = .success
-                    // Placeholder - actual credentials saved by CLI command
-                    let placeholderCredentials = KiroAuthCredentials(
-                        accessToken: "",
-                        refreshToken: nil,
-                        expiresAt: Date(),
-                        clientId: "",
-                        clientSecret: "",
-                        authMethod: "IdC",
-                        region: selectedRegion
-                    )
-                    onSuccess(placeholderCredentials)
+                    onSuccess()
                 }
             } else {
                 await MainActor.run {
@@ -489,7 +479,7 @@ struct KiroLoginView: View {
 // MARK: - Preview
 
 #Preview {
-    KiroLoginView { credentials in
-        print("Login successful: \(credentials.accessToken.prefix(20))...")
+    KiroLoginView {
+        print("Login successful")
     }
 }

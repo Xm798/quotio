@@ -231,7 +231,7 @@ struct ProvidersScreen: View {
             .environment(viewModel)
         }
         .sheet(isPresented: $showKiroLoginSheet) {
-            KiroLoginView { _ in
+            KiroLoginView {
                 Task {
                     if modeManager.isLocalProxyMode && viewModel.proxyManager.proxyStatus.running {
                         await viewModel.refreshData()

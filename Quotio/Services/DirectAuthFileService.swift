@@ -368,9 +368,6 @@ actor DirectAuthFileService {
                 if let profileArn = json["profile_arn"] as? String ?? json["profileArn"] as? String {
                     extras["profileArn"] = profileArn
                 }
-                if let profileArn = json["profile_arn"] as? String ?? json["profileArn"] as? String {
-                    extras["profileArn"] = profileArn
-                }
 
                 return AuthTokenData(
                     accessToken: accessToken,
