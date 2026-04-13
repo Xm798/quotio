@@ -64,6 +64,68 @@ nonisolated struct KiroTokenResponse: Codable {
     // No CodingKeys needed - Swift will match camelCase by default
 }
 
+// MARK: - Kiro Fingerprint Config
+
+/// Mirrors CLIProxyAPIPlus's `kiro-fingerprint` config section.
+/// When set, these values override hardcoded defaults in User-Agent headers to stay consistent with the proxy.
+nonisolated struct KiroFingerprintConfig: Sendable {
+    let oidcSDKVersion: String
+    let runtimeSDKVersion: String
+    let osType: String
+    let osVersion: String
+    let nodeVersion: String
+    let kiroVersion: String
+    let kiroHash: String?
+
+    /// Parse `kiro-fingerprint` block from a config.yaml string.
+    /// Returns nil if the section is absent.
+    static func from(configContent: String) -> KiroFingerprintConfig? {
+        guard let sectionRange = configContent.range(of: "kiro-fingerprint:") else { return nil }
+        let afterSection = String(configContent[sectionRange.upperBound...])
+        let lines = afterSection.components(separatedBy: .newlines)
+
+        // Collect indented key-value pairs until we hit a non-indented line (next top-level key)
+        var dict: [String: String] = [:]
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty { continue }
+            // Stop at next top-level key (no leading whitespace)
+            if !line.hasPrefix(" ") && !line.hasPrefix("\t") && trimmed.contains(":") { break }
+            guard let colonIdx = trimmed.firstIndex(of: ":") else { continue }
+            let key = String(trimmed[trimmed.startIndex..<colonIdx]).trimmingCharacters(in: .whitespaces)
+            let val = String(trimmed[trimmed.index(after: colonIdx)...])
+                .trimmingCharacters(in: .whitespaces)
+                .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+            if !key.isEmpty && !val.isEmpty { dict[key] = val }
+        }
+
+        guard let oidc = dict["oidc-sdk-version"],
+              let runtime = dict["runtime-sdk-version"],
+              let osType = dict["os-type"],
+              let osVer = dict["os-version"],
+              let node = dict["node-version"],
+              let kiroVer = dict["kiro-version"] else { return nil }
+
+        return KiroFingerprintConfig(
+            oidcSDKVersion: oidc,
+            runtimeSDKVersion: runtime,
+            osType: osType,
+            osVersion: osVer,
+            nodeVersion: node,
+            kiroVersion: kiroVer,
+            kiroHash: dict["kiro-hash"]
+        )
+    }
+
+    /// Load from CLIProxyAPI's config.yaml at ~/Library/Application Support/Quotio/config.yaml
+    static func loadFromProxyConfig() -> KiroFingerprintConfig? {
+        guard let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+        let configPath = appSupport.appendingPathComponent("Quotio/config.yaml").path
+        guard let content = try? String(contentsOfFile: configPath, encoding: .utf8) else { return nil }
+        return from(configContent: content)
+    }
+}
+
 // MARK: - Kiro Quota Fetcher
 
 actor KiroQuotaFetcher {
@@ -114,11 +176,18 @@ actor KiroQuotaFetcher {
         return String(parts[3])
     }
 
-    // Kiro IDE version for User-Agent — keep in sync with Kiro releases
-    private let kiroVersion = "0.10.32"
+    // Fingerprint config loaded from CLIProxyAPI's config.yaml (if set)
+    private let fingerprintConfig: KiroFingerprintConfig?
+
+    // Kiro IDE version — overridden by fingerprint config if present
+    private var kiroVersion: String { fingerprintConfig?.kiroVersion ?? "0.10.32" }
     /// Generate account-based machine ID using clientId/refreshToken, falling back to hardware UUID
+    /// If fingerprint config has kiro-hash set, use that directly.
     private var machineIdCache: [String: String] = [:]
     private func machineId(for tokenData: AuthTokenData) -> String {
+        if let configHash = fingerprintConfig?.kiroHash, configHash.count == 64 {
+            return configHash
+        }
         if let overrideMid = UserDefaults.standard.string(forKey: "KiroMachineId"), overrideMid.count == 64 {
             return overrideMid
         }
@@ -154,12 +223,18 @@ actor KiroQuotaFetcher {
 
     private func kiroUserAgent(for tokenData: AuthTokenData) -> String {
         let mid = machineId(for: tokenData)
-        return "aws-sdk-js/1.0.0 ua/2.1 os/darwin#\(darwinVersion) lang/js md/nodejs#22.21.1 api/codewhispererruntime#1.0.0 m/N,E KiroIDE-\(kiroVersion)-\(mid)"
+        let fp = fingerprintConfig
+        let sdkVer = fp?.runtimeSDKVersion ?? "1.0.0"
+        let os = fp?.osType ?? "darwin"
+        let osVer = fp?.osVersion ?? darwinVersion
+        let node = fp?.nodeVersion ?? "22.21.1"
+        return "aws-sdk-js/\(sdkVer) ua/2.1 os/\(os)#\(osVer) lang/js md/nodejs#\(node) api/codewhispererruntime#\(sdkVer) m/N,E KiroIDE-\(kiroVersion)-\(mid)"
     }
 
     private func kiroAmzUserAgent(for tokenData: AuthTokenData) -> String {
         let mid = machineId(for: tokenData)
-        return "aws-sdk-js/1.0.0 KiroIDE-\(kiroVersion)-\(mid)"
+        let sdkVer = fingerprintConfig?.runtimeSDKVersion ?? "1.0.0"
+        return "aws-sdk-js/\(sdkVer) KiroIDE-\(kiroVersion)-\(mid)"
     }
 
     private var session: URLSession
@@ -171,6 +246,7 @@ actor KiroQuotaFetcher {
     init() {
         let config = ProxyConfigurationService.createProxiedConfigurationStatic(timeout: 20)
         self.session = URLSession(configuration: config)
+        self.fingerprintConfig = KiroFingerprintConfig.loadFromProxyConfig()
     }
 
     /// Update the URLSession with current proxy settings
@@ -503,7 +579,8 @@ actor KiroQuotaFetcher {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("oidc.\(region).amazonaws.com", forHTTPHeaderField: "Host")
         request.addValue("keep-alive", forHTTPHeaderField: "Connection")
-        request.addValue("aws-sdk-js/3.980.0 ua/2.1 os/other lang/js md/browser#unknown_unknown api/sso-oidc#3.980.0 m/E KiroIDE", forHTTPHeaderField: "x-amz-user-agent")
+        let oidcSdk = fingerprintConfig?.oidcSDKVersion ?? "3.980.0"
+        request.addValue("aws-sdk-js/\(oidcSdk) ua/2.1 os/other lang/js md/browser#unknown_unknown api/sso-oidc#\(oidcSdk) m/E KiroIDE", forHTTPHeaderField: "x-amz-user-agent")
         request.addValue("*/*", forHTTPHeaderField: "Accept")
         request.addValue("*", forHTTPHeaderField: "Accept-Language")
         request.addValue("cors", forHTTPHeaderField: "sec-fetch-mode")
