@@ -168,6 +168,16 @@ enum QuotaDisplayMode: String, Codable, CaseIterable, Identifiable {
         case .remaining: return remainingPercent
         }
     }
+
+    /// Unclamped display value from raw used/limit: Used can exceed 100%, Remaining floors at 0%.
+    func unclampedDisplayValue(used: Int, limit: Int) -> Double {
+        guard limit > 0 else { return 0 }
+        let usedPercent = Double(used) / Double(limit) * 100
+        switch self {
+        case .used: return usedPercent
+        case .remaining: return max(0, 100 - usedPercent)
+        }
+    }
     
     var suffixKey: String {
         switch self {

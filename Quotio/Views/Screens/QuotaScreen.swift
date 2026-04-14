@@ -1627,14 +1627,8 @@ private struct KiroCreditUsageBar: View {
         return Double(baseUsed) / Double(limit) * 100
     }
 
-    /// Unclamped: overage means Used can exceed 100%, Remaining floors at 0%.
     private var creditDisplayPercent: Double {
-        guard limit > 0 else { return 0 }
-        let usedPercent = Double(used) / Double(limit) * 100
-        switch settings.quotaDisplayMode {
-        case .used: return usedPercent
-        case .remaining: return max(0, 100 - usedPercent)
-        }
+        settings.quotaDisplayMode.unclampedDisplayValue(used: used, limit: limit)
     }
 
     private var totalWithOverage: Int {

@@ -972,16 +972,11 @@ private struct ModelBadgeData: Identifiable {
 
     var hasOverage: Bool { overageCredits > 0 }
 
-    /// Unclamped display percent for credit models: Used can exceed 100%, Remaining floors at 0%.
     func creditDisplayPercent(displayMode: QuotaDisplayMode) -> Double {
-        guard let used, let limit, limit > 0 else {
+        guard let used, let limit else {
             return displayMode.displayValue(from: percentage)
         }
-        let usedPercent = Double(used) / Double(limit) * 100
-        switch displayMode {
-        case .used: return usedPercent
-        case .remaining: return max(0, 100 - usedPercent)
-        }
+        return displayMode.unclampedDisplayValue(used: used, limit: limit)
     }
 
     var formattedOverageCost: String? {
@@ -1086,7 +1081,7 @@ private struct LowestBarLayout: View {
                                 .foregroundStyle(.tertiary)
                         }
 
-                        PercentageBadge(percentage: lowest.percentage, creditDisplayPercent: lowest.creditDisplayPercent(displayMode: displayMode), style: .textOnly)
+                        PercentageBadge(percentage: lowest.percentage, displayPercentOverride: lowest.creditDisplayPercent(displayMode: displayMode), style: .textOnly)
                     }
 
                     // Progress bar with overage visualization
@@ -1392,7 +1387,7 @@ private struct MenuOverageProgressBar: View {
 
 private struct PercentageBadge: View {
     let percentage: Double
-    var creditDisplayPercent: Double?
+    var displayPercentOverride: Double?
     var style: Style = .pill
 
     private var settings: MenuBarSettingsManager { MenuBarSettingsManager.shared }
@@ -1404,7 +1399,7 @@ private struct PercentageBadge: View {
     }
 
     private var displayPercent: Double {
-        creditDisplayPercent ?? menuDisplayPercent(remainingPercent: percentage, displayMode: settings.quotaDisplayMode)
+        displayPercentOverride ?? menuDisplayPercent(remainingPercent: percentage, displayMode: settings.quotaDisplayMode)
     }
     
     var body: some View {
