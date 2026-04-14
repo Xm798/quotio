@@ -4,7 +4,7 @@
 
 ## Overview
 
-- **Lines:** 2254
+- **Lines:** 2261
 - **Language:** Swift
 - **Symbols:** 38
 - **Public symbols:** 0
@@ -43,12 +43,12 @@
 | 1455 | struct | ModelDetailCard | (private) | `struct ModelDetailCard` |
 | 1522 | struct | UsageRowV2 | (private) | `struct UsageRowV2` |
 | 1610 | struct | KiroCreditUsageBar | (private) | `struct KiroCreditUsageBar` |
-| 1721 | fn | legendItem | (private) | `private func legendItem(color: Color, label: St...` |
-| 1735 | struct | KiroOverageSection | (private) | `struct KiroOverageSection` |
-| 1805 | struct | KiroLowestBarLayout | (private) | `struct KiroLowestBarLayout` |
-| 1813 | fn | overage | (private) | `private func overage(for model: ModelQuota) -> ...` |
-| 1927 | struct | KiroRingLayout | (private) | `struct KiroRingLayout` |
-| 1935 | fn | overage | (private) | `private func overage(for model: ModelQuota) -> ...` |
-| 2024 | struct | KiroUsageRow | (private) | `struct KiroUsageRow` |
-| 2108 | struct | QuotaLoadingView | (private) | `struct QuotaLoadingView` |
+| 1728 | fn | legendItem | (private) | `private func legendItem(color: Color, label: St...` |
+| 1742 | struct | KiroOverageSection | (private) | `struct KiroOverageSection` |
+| 1812 | struct | KiroLowestBarLayout | (private) | `struct KiroLowestBarLayout` |
+| 1820 | fn | overage | (private) | `private func overage(for model: ModelQuota) -> ...` |
+| 1934 | struct | KiroRingLayout | (private) | `struct KiroRingLayout` |
+| 1942 | fn | overage | (private) | `private func overage(for model: ModelQuota) -> ...` |
+| 2031 | struct | KiroUsageRow | (private) | `struct KiroUsageRow` |
+| 2115 | struct | QuotaLoadingView | (private) | `struct QuotaLoadingView` |
 

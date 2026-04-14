@@ -25,7 +25,7 @@ Symbol maps for 3 large files in this module.
 | 468 | fn | generateGlmCompatibilityYAML | (private) |
 | 498 | fn | toYAMLSections | (internal) |
 
-## Quotio/Models/MenuBarSettings.swift (632 lines)
+## Quotio/Models/MenuBarSettings.swift (642 lines)
 
 | Line | Kind | Name | Visibility |
 | ---- | ---- | ---- | ---------- |
@@ -40,28 +40,29 @@ Symbol maps for 3 large files in this module.
 | 134 | enum | MenuBarColorMode | (internal) |
 | 151 | enum | QuotaDisplayMode | (internal) |
 | 165 | fn | displayValue | (internal) |
-| 183 | enum | QuotaDisplayStyle | (internal) |
-| 210 | enum | RefreshCadence | (internal) |
-| 253 | enum | TotalUsageMode | (internal) |
-| 270 | enum | ModelAggregationMode | (internal) |
-| 286 | mod | extension MenuBarSettingsManager | (internal) |
-| 334 | fn | calculateTotalUsagePercent | (internal) |
-| 359 | fn | aggregateModelPercentages | (internal) |
-| 376 | class | RefreshSettingsManager | (internal) |
-| 394 | method | init | (private) |
-| 404 | struct | MenuBarQuotaDisplayItem | (internal) |
-| 423 | class | MenuBarSettingsManager | (internal) |
-| 515 | method | init | (private) |
-| 553 | fn | saveSelectedItems | (private) |
-| 559 | fn | loadSelectedItems | (private) |
-| 567 | fn | addItem | (internal) |
-| 581 | fn | removeItem | (internal) |
-| 587 | fn | isSelected | (internal) |
-| 592 | fn | toggleItem | (internal) |
-| 602 | fn | pruneInvalidItems | (internal) |
-| 606 | fn | autoSelectNewAccounts | (internal) |
-| 621 | fn | enforceMaxItems | (private) |
-| 628 | fn | clampedMenuBarMax | (private) |
+| 173 | fn | unclampedDisplayValue | (internal) |
+| 193 | enum | QuotaDisplayStyle | (internal) |
+| 220 | enum | RefreshCadence | (internal) |
+| 263 | enum | TotalUsageMode | (internal) |
+| 280 | enum | ModelAggregationMode | (internal) |
+| 296 | mod | extension MenuBarSettingsManager | (internal) |
+| 344 | fn | calculateTotalUsagePercent | (internal) |
+| 369 | fn | aggregateModelPercentages | (internal) |
+| 386 | class | RefreshSettingsManager | (internal) |
+| 404 | method | init | (private) |
+| 414 | struct | MenuBarQuotaDisplayItem | (internal) |
+| 433 | class | MenuBarSettingsManager | (internal) |
+| 525 | method | init | (private) |
+| 563 | fn | saveSelectedItems | (private) |
+| 569 | fn | loadSelectedItems | (private) |
+| 577 | fn | addItem | (internal) |
+| 591 | fn | removeItem | (internal) |
+| 597 | fn | isSelected | (internal) |
+| 602 | fn | toggleItem | (internal) |
+| 612 | fn | pruneInvalidItems | (internal) |
+| 616 | fn | autoSelectNewAccounts | (internal) |
+| 631 | fn | enforceMaxItems | (private) |
+| 638 | fn | clampedMenuBarMax | (private) |
 
 ## Quotio/Models/Models.swift (640 lines)
 

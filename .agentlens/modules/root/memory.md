@@ -31,15 +31,15 @@
 
 > Only checks file existence (metadata), does NOT read file content
 
-### `NOTE` (Quotio/Services/Proxy/CLIProxyManager.swift:224)
+### `NOTE` (Quotio/Services/Proxy/CLIProxyManager.swift:227)
 
 > Bridge mode default is registered in AppDelegate.applicationDidFinishLaunching()
 
-### `NOTE` (Quotio/Services/Proxy/CLIProxyManager.swift:340)
+### `NOTE` (Quotio/Services/Proxy/CLIProxyManager.swift:344)
 
 > Changes take effect after proxy restart (CLIProxyAPI does not support live routing API)
 
-### `NOTE` (Quotio/Services/Proxy/CLIProxyManager.swift:1473)
+### `NOTE` (Quotio/Services/Proxy/CLIProxyManager.swift:1479)
 
 > Notification is handled by AtomFeedUpdateService polling
 

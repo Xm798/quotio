@@ -73,7 +73,7 @@ Symbol maps for 6 large files in this module.
 | 854 | struct | OAuthStatusView | (private) |
 | 1026 | enum | CustomProviderSheetMode | (internal) |
 
-## Quotio/Views/Screens/QuotaScreen.swift (2254 lines)
+## Quotio/Views/Screens/QuotaScreen.swift (2261 lines)
 
 | Line | Kind | Name | Visibility |
 | ---- | ---- | ---- | ---------- |
@@ -107,14 +107,14 @@ Symbol maps for 6 large files in this module.
 | 1455 | struct | ModelDetailCard | (private) |
 | 1522 | struct | UsageRowV2 | (private) |
 | 1610 | struct | KiroCreditUsageBar | (private) |
-| 1721 | fn | legendItem | (private) |
-| 1735 | struct | KiroOverageSection | (private) |
-| 1805 | struct | KiroLowestBarLayout | (private) |
-| 1813 | fn | overage | (private) |
-| 1927 | struct | KiroRingLayout | (private) |
-| 1935 | fn | overage | (private) |
-| 2024 | struct | KiroUsageRow | (private) |
-| 2108 | struct | QuotaLoadingView | (private) |
+| 1728 | fn | legendItem | (private) |
+| 1742 | struct | KiroOverageSection | (private) |
+| 1812 | struct | KiroLowestBarLayout | (private) |
+| 1820 | fn | overage | (private) |
+| 1934 | struct | KiroRingLayout | (private) |
+| 1942 | fn | overage | (private) |
+| 2031 | struct | KiroUsageRow | (private) |
+| 2115 | struct | QuotaLoadingView | (private) |
 
 ## Quotio/Views/Screens/SettingsScreen.swift (3051 lines)
 

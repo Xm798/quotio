@@ -26,7 +26,7 @@
 | `Quotio/Services/Logger.swift` | 124 |  |
 | `Quotio/Services/ManagementAPIClient.swift` | 732 | 📊 |
 | `Quotio/Services/NotificationManager.swift` | 334 |  |
-| `Quotio/Services/Proxy/CLIProxyManager.swift` | 2018 | 📊 |
+| `Quotio/Services/Proxy/CLIProxyManager.swift` | 2052 | 📊 |
 | `Quotio/Services/Proxy/FallbackFormatConverter.swift` | 109 |  |
 | `Quotio/Services/Proxy/ProxyBridge.swift` | 1093 | 📊 |
 | `Quotio/Services/Proxy/ProxyStorageManager.swift` | 402 |  |
@@ -34,7 +34,7 @@
 | `Quotio/Services/RequestTracker.swift` | 192 |  |
 | `Quotio/Services/ShellProfileManager.swift` | 121 |  |
 | `Quotio/Services/StatusBarManager.swift` | 272 |  |
-| `Quotio/Services/StatusBarMenuBuilder.swift` | 1697 | 📊 |
+| `Quotio/Services/StatusBarMenuBuilder.swift` | 1705 | 📊 |
 | `Quotio/Services/Tunnel/CloudflaredService.swift` | 266 |  |
 | `Quotio/Services/Tunnel/TunnelManager.swift` | 254 |  |
 | `Quotio/Services/UpdaterService.swift` | 168 |  |
