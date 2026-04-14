@@ -16,7 +16,7 @@
 | `Quotio/Models/CustomProviderModels.swift` | 546 | 📊 |
 | `Quotio/Models/FallbackModels.swift` | 190 |  |
 | `Quotio/Models/IDEScanSettings.swift` | 168 |  |
-| `Quotio/Models/MenuBarSettings.swift` | 642 | 📊 |
+| `Quotio/Models/MenuBarSettings.swift` | 651 | 📊 |
 | `Quotio/Models/Models.swift` | 640 | 📊 |
 | `Quotio/Models/OperatingMode.swift` | 370 |  |
 | `Quotio/Models/ProxyVersionModels.swift` | 201 |  |

@@ -2,9 +2,9 @@
 
 [← Back to MODULE](MODULE.md) | [← Back to INDEX](../../INDEX.md)
 
-Symbol maps for 4 large files in this module.
+Symbol maps for 5 large files in this module.
 
-## Quotio/Services/AgentConfigurationService.swift (1609 lines)
+## Quotio/Services/AgentConfigurationService.swift (1610 lines)
 
 | Line | Kind | Name | Visibility |
 | ---- | ---- | ---- | ---------- |
@@ -42,10 +42,10 @@ Symbol maps for 4 large files in this module.
 | 1140 | fn | generateGeminiCLIConfig | (private) |
 | 1183 | fn | generateAmpConfig | (private) |
 | 1266 | fn | generateOpenCodeConfig | (private) |
-| 1357 | fn | buildOpenCodeModelConfig | (private) |
-| 1409 | fn | generateFactoryDroidConfig | (private) |
-| 1479 | fn | fetchAvailableModels | (internal) |
-| 1534 | fn | testConnection | (internal) |
+| 1358 | fn | buildOpenCodeModelConfig | (private) |
+| 1410 | fn | generateFactoryDroidConfig | (private) |
+| 1480 | fn | fetchAvailableModels | (internal) |
+| 1535 | fn | testConnection | (internal) |
 
 ## Quotio/Services/AtomFeedUpdateService.swift (533 lines)
 
@@ -76,6 +76,26 @@ Symbol maps for 4 large files in this module.
 | 466 | fn | parser | (internal) |
 | 470 | fn | parser | (internal) |
 | 515 | enum | AtomFeedError | (internal) |
+
+## Quotio/Services/DirectAuthFileService.swift (505 lines)
+
+| Line | Kind | Name | Visibility |
+| ---- | ---- | ---- | ---------- |
+| 14 | struct | DirectAuthFile | (internal) |
+| 66 | fn | hash | (internal) |
+| 80 | class | DirectAuthFileService | (internal) |
+| 84 | fn | expandPath | (private) |
+| 89 | fn | scanAllAuthFiles | (internal) |
+| 97 | fn | scanCLIProxyAPIDirectory | (private) |
+| 140 | fn | parseAuthFileJSON | (private) |
+| 186 | fn | mapTypeToProvider | (private) |
+| 206 | fn | parseISO8601Date | (private) |
+| 223 | fn | parseAuthFileName | (private) |
+| 247 | fn | extractEmail | (private) |
+| 287 | fn | readAuthToken | (internal) |
+| 399 | fn | loadKiroDeviceRegistration | (private) |
+| 449 | fn | updateKiroAuthFile | (private) |
+| 477 | struct | AuthTokenData | (internal) |
 
 ## Quotio/Services/ManagementAPIClient.swift (732 lines)
 
@@ -140,7 +160,7 @@ Symbol maps for 4 large files in this module.
 | 708 | method | init | (internal) |
 | 722 | fn | encode | (internal) |
 
-## Quotio/Services/StatusBarMenuBuilder.swift (1470 lines)
+## Quotio/Services/StatusBarMenuBuilder.swift (1705 lines)
 
 | Line | Kind | Name | Visibility |
 | ---- | ---- | ---- | ---------- |
@@ -174,20 +194,22 @@ Symbol maps for 4 large files in this module.
 | 642 | fn | copyButton | (private) |
 | 659 | struct | MenuAccountCardView | (private) |
 | 698 | fn | planConfig | (private) |
-| 930 | fn | formatLocalTime | (private) |
-| 949 | struct | ModelBadgeData | (private) |
-| 988 | struct | AntigravityDisplayGroup | (private) |
-| 995 | fn | menuDisplayPercent | (private) |
-| 999 | fn | menuStatusColor | (private) |
-| 1017 | struct | LowestBarLayout | (private) |
-| 1097 | struct | RingGridLayout | (private) |
-| 1141 | struct | CardGridLayout | (private) |
-| 1190 | struct | ModernProgressBar | (private) |
-| 1225 | struct | PercentageBadge | (private) |
-| 1261 | struct | MenuModelDetailView | (private) |
-| 1313 | struct | MenuEmptyStateView | (private) |
-| 1328 | struct | MenuViewMoreAccountsView | (private) |
-| 1376 | mod | extension AIProvider | (private) |
-| 1398 | struct | MenuActionsView | (private) |
-| 1436 | struct | MenuBarActionButton | (private) |
+| 942 | fn | formatLocalTime | (private) |
+| 960 | struct | ModelBadgeData | (private) |
+| 974 | fn | creditDisplayPercent | (internal) |
+| 1018 | struct | AntigravityDisplayGroup | (private) |
+| 1025 | fn | menuDisplayPercent | (private) |
+| 1029 | fn | menuStatusColor | (private) |
+| 1047 | struct | LowestBarLayout | (private) |
+| 1171 | struct | RingGridLayout | (private) |
+| 1215 | struct | CardGridLayout | (private) |
+| 1283 | struct | ModernProgressBar | (private) |
+| 1319 | struct | MenuOverageProgressBar | (private) |
+| 1388 | struct | PercentageBadge | (private) |
+| 1425 | struct | MenuModelDetailView | (private) |
+| 1477 | struct | MenuEmptyStateView | (private) |
+| 1492 | struct | MenuViewMoreAccountsView | (private) |
+| 1540 | mod | extension AIProvider | (private) |
+| 1562 | struct | MenuActionsView | (private) |
+| 1600 | struct | MenuBarActionButton | (private) |
 

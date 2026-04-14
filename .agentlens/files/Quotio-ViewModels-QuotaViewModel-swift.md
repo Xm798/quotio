@@ -4,7 +4,7 @@
 
 ## Overview
 
-- **Lines:** 1960
+- **Lines:** 1961
 - **Language:** Swift
 - **Symbols:** 92
 - **Public symbols:** 0
@@ -103,8 +103,8 @@
 | 1783 | fn | scanIDEsWithConsent | (internal) | `func scanIDEsWithConsent(options: IDEScanOption...` |
 | 1853 | fn | savePersistedIDEQuotas | (private) | `private func savePersistedIDEQuotas()` |
 | 1876 | fn | loadPersistedIDEQuotas | (private) | `private func loadPersistedIDEQuotas()` |
-| 1938 | fn | shortenAccountKey | (private) | `private func shortenAccountKey(_ key: String) -...` |
-| 1950 | struct | OAuthState | (internal) | `struct OAuthState` |
+| 1939 | fn | shortenAccountKey | (private) | `private func shortenAccountKey(_ key: String) -...` |
+| 1951 | struct | OAuthState | (internal) | `struct OAuthState` |
 
 ## Memory Markers
 

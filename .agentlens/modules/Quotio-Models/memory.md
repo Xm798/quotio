@@ -13,7 +13,7 @@
 
 > Use OperatingMode.swift instead
 
-### `WARNING` (Quotio/Models/MenuBarSettings.swift:515)
+### `WARNING` (Quotio/Models/MenuBarSettings.swift:524)
 
 > shows when approaching the limit (at maxItems - 1)
 
