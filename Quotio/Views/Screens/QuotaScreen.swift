@@ -1613,6 +1613,11 @@ private struct KiroCreditUsageBar: View {
     let overageCredits: Int
     let overageRate: Double
 
+    private var settings: MenuBarSettingsManager { MenuBarSettingsManager.shared }
+    private var displayHelper: QuotaDisplayHelper {
+        QuotaDisplayHelper(displayMode: settings.quotaDisplayMode)
+    }
+
     private var baseUsed: Int {
         min(used, limit)
     }
@@ -1622,19 +1627,27 @@ private struct KiroCreditUsageBar: View {
         return Double(baseUsed) / Double(limit) * 100
     }
 
+    /// Unclamped: overage means Used can exceed 100%, Remaining floors at 0%.
+    private var creditDisplayPercent: Double {
+        guard limit > 0 else { return 0 }
+        let usedPercent = Double(used) / Double(limit) * 100
+        switch settings.quotaDisplayMode {
+        case .used: return usedPercent
+        case .remaining: return max(0, 100 - usedPercent)
+        }
+    }
+
     private var totalWithOverage: Int {
         max(1, limit + overageCredits)
     }
 
     private var statusColor: Color {
         if overageCredits > 0 { return .red }
-        let remainingPercent = 100 - basePercent
-        if remainingPercent > 50 { return .green }
-        if remainingPercent > 20 { return .orange }
-        return .red
+        return displayHelper.statusColor(remainingPercent: 100 - basePercent)
     }
 
     var body: some View {
+        let statusColor = self.statusColor
         VStack(alignment: .leading, spacing: 8) {
             // Usage numbers
             HStack(alignment: .firstTextBaseline) {
@@ -1646,7 +1659,7 @@ private struct KiroCreditUsageBar: View {
                     Text("/ \(limit)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    Text(String(format: "%.0f%%", 100 - basePercent))
+                    Text(String(format: "%.0f%%", creditDisplayPercent))
                         .font(.caption)
                         .foregroundStyle(statusColor)
                         .monospacedDigit()
