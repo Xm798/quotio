@@ -14,27 +14,29 @@ struct RingProgressView: View {
     var lineWidth: CGFloat = 4
     var tint: Color = .accentColor
     var showLabel: Bool = false
-    
+    /// Override the label text independently from ring fill (e.g. >100% for overage).
+    var labelPercent: Double?
+
     private var clamped: Double {
         min(100, max(0, percent))
     }
-    
+
     var body: some View {
         ZStack {
             // Background ring
             Circle()
                 .stroke(.quaternary, lineWidth: lineWidth)
-            
+
             // Progress ring
             Circle()
                 .trim(from: 0, to: clamped / 100)
                 .stroke(tint, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .animation(.smooth(duration: 0.3), value: clamped)
-            
+
             // Optional center label
             if showLabel {
-                Text("\(Int(clamped))%")
+                Text("\(Int(labelPercent ?? clamped))%")
                     .font(.system(size: size * 0.24, weight: .bold))
                     .monospacedDigit()
             }

@@ -972,6 +972,18 @@ private struct ModelBadgeData: Identifiable {
 
     var hasOverage: Bool { overageCredits > 0 }
 
+    /// Unclamped display percent for credit models: Used can exceed 100%, Remaining floors at 0%.
+    func creditDisplayPercent(displayMode: QuotaDisplayMode) -> Double {
+        guard let used, let limit, limit > 0 else {
+            return displayMode.displayValue(from: percentage)
+        }
+        let usedPercent = Double(used) / Double(limit) * 100
+        switch displayMode {
+        case .used: return usedPercent
+        case .remaining: return max(0, 100 - usedPercent)
+        }
+    }
+
     var formattedOverageCost: String? {
         guard overageCredits > 0 else { return nil }
         return String(format: "$%.2f", Double(overageCredits) * overageRate)
@@ -1074,7 +1086,7 @@ private struct LowestBarLayout: View {
                                 .foregroundStyle(.tertiary)
                         }
 
-                        PercentageBadge(percentage: lowest.percentage, style: .textOnly)
+                        PercentageBadge(percentage: lowest.percentage, creditDisplayPercent: lowest.creditDisplayPercent(displayMode: displayMode), style: .textOnly)
                     }
 
                     // Progress bar with overage visualization
@@ -1149,7 +1161,7 @@ private struct LowestBarLayout: View {
                                     .font(.system(size: 9, design: .rounded))
                                     .foregroundStyle(.tertiary)
                             }
-                            Text("\(Int(menuDisplayPercent(remainingPercent: model.percentage, displayMode: displayMode)))%")
+                            Text("\(Int(model.creditDisplayPercent(displayMode: displayMode)))%")
                                 .font(.system(size: 10, weight: .bold, design: .monospaced))
                                 .foregroundStyle(menuStatusColor(remainingPercent: model.percentage, displayMode: displayMode))
                         }
@@ -1185,7 +1197,7 @@ private struct RingGridLayout: View {
         LazyVGrid(columns: columns, spacing: 10) {
             ForEach(models, id: \.name) { (model: ModelBadgeData) in
                 VStack(spacing: 4) {
-                    RingProgressView(percent: menuDisplayPercent(remainingPercent: model.percentage, displayMode: displayMode), size: ringSize, lineWidth: 4, tint: menuStatusColor(remainingPercent: model.percentage, displayMode: displayMode), showLabel: true)
+                    RingProgressView(percent: menuDisplayPercent(remainingPercent: model.percentage, displayMode: displayMode), size: ringSize, lineWidth: 4, tint: menuStatusColor(remainingPercent: model.percentage, displayMode: displayMode), showLabel: true, labelPercent: model.creditDisplayPercent(displayMode: displayMode))
 
                     Text(model.name)
                         .font(.system(size: 10, weight: .medium, design: .rounded))
@@ -1236,7 +1248,7 @@ private struct CardGridLayout: View {
                                 .font(.system(size: 9, design: .rounded))
                                 .foregroundStyle(.tertiary)
                         }
-                        Text("\(Int(menuDisplayPercent(remainingPercent: model.percentage, displayMode: displayMode)))%")
+                        Text("\(Int(model.creditDisplayPercent(displayMode: displayMode)))%")
                             .font(.system(size: 10, weight: .bold, design: .monospaced))
                             .foregroundStyle(menuStatusColor(remainingPercent: model.percentage, displayMode: displayMode))
                     }
@@ -1380,18 +1392,19 @@ private struct MenuOverageProgressBar: View {
 
 private struct PercentageBadge: View {
     let percentage: Double
+    var creditDisplayPercent: Double?
     var style: Style = .pill
-    
+
     private var settings: MenuBarSettingsManager { MenuBarSettingsManager.shared }
-    
+
     enum Style { case pill, textOnly }
-    
+
     var color: Color {
         menuStatusColor(remainingPercent: percentage, displayMode: settings.quotaDisplayMode)
     }
-    
+
     private var displayPercent: Double {
-        menuDisplayPercent(remainingPercent: percentage, displayMode: settings.quotaDisplayMode)
+        creditDisplayPercent ?? menuDisplayPercent(remainingPercent: percentage, displayMode: settings.quotaDisplayMode)
     }
     
     var body: some View {
