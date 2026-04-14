@@ -1628,7 +1628,9 @@ private struct KiroCreditUsageBar: View {
     }
 
     private var creditDisplayPercent: Double {
-        settings.quotaDisplayMode.unclampedDisplayValue(used: used, limit: limit)
+        guard limit > 0 else { return 0 }
+        let remainingPercent = Double(limit - used) / Double(limit) * 100
+        return settings.quotaDisplayMode.displayValue(from: remainingPercent)
     }
 
     private var totalWithOverage: Int {
