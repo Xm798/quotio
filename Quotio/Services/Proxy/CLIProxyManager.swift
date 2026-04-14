@@ -122,6 +122,9 @@ final class CLIProxyManager {
     
     /// The active proxy version (if using versioned storage).
     private(set) var activeVersion: String?
+
+    /// Version detected from the binary itself (most accurate source).
+    private(set) var detectedBinaryVersion: String?
     
     /// Last upgrade error message.
     private(set) var upgradeError: String?
@@ -225,8 +228,9 @@ final class CLIProxyManager {
         // using UserDefaults.register(defaults:) which is the preferred approach
 
         try? FileManager.default.createDirectory(atPath: authDir, withIntermediateDirectories: true)
-        
+
         ensureConfigExists()
+        refreshBinaryVersion()
     }
 
     /// Restart the proxy if it is currently running.
@@ -595,8 +599,9 @@ final class CLIProxyManager {
                 ? String(releaseInfo.tagName.dropFirst())
                 : releaseInfo.tagName
             saveInstalledVersion(version)
+            refreshBinaryVersion()
             downloadProgress = 1.0
-            
+
         } catch {
             lastError = error.localizedDescription
             throw error
@@ -913,7 +918,8 @@ final class CLIProxyManager {
             }
             
             proxyStatus.running = true
-            
+            refreshBinaryVersion()
+
             startHealthMonitor()
             
         } catch {
@@ -1384,7 +1390,7 @@ extension CLIProxyManager {
     
     /// Get the currently installed version.
     var currentVersion: String? {
-        storageManager.getCurrentVersion()
+        detectedBinaryVersion ?? storageManager.getCurrentVersion()
     }
     
     /// List all installed versions.
@@ -1451,7 +1457,34 @@ extension CLIProxyManager {
     private func saveInstalledVersion(_ version: String) {
         UserDefaults.standard.set(version, forKey: "installedProxyVersion")
     }
-    
+
+    // MARK: - Binary Version Detection
+
+    /// Detect and cache the binary version by running the binary with `-help`.
+    func refreshBinaryVersion() {
+        let path = effectiveBinaryPath
+        Task {
+            let result = await CLIExecutor.shared.execute(
+                command: path, arguments: ["-help"], timeout: 5
+            )
+            let version = Self.parseBinaryVersion(from: result.combinedOutput)
+            if version != self.detectedBinaryVersion {
+                self.detectedBinaryVersion = version
+            }
+        }
+    }
+
+    /// Parse version from binary output: "CLIProxyAPI Version: 6.9.23-next-plus, Commit: ..."
+    private static func parseBinaryVersion(from output: String) -> String? {
+        guard let regex = try? NSRegularExpression(pattern: "Version:\\s*([^,\\s]+)"),
+              let match = regex.firstMatch(in: output, range: NSRange(output.startIndex..., in: output)),
+              let range = Range(match.range(at: 1), in: output) else {
+            return nil
+        }
+        let version = String(output[range])
+        return version.isEmpty ? nil : version
+    }
+
     // MARK: - Fetch All Releases (for Advanced Mode)
     
     /// Fetch all available releases from GitHub.
@@ -1588,7 +1621,8 @@ extension CLIProxyManager {
         
         // Save the installed version
         saveInstalledVersion(installed.version)
-        
+        refreshBinaryVersion()
+
         // Suppress any future upgrade notifications for this version
         // This prevents the bug where a notification is shown immediately after upgrading
         NotificationManager.shared.suppressUpgradeNotification(version: installed.version)
