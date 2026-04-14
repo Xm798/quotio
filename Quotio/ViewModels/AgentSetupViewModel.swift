@@ -437,7 +437,7 @@ final class AgentSetupViewModel {
 
         for (_, quotaData) in providerQuotas {
             let hasQuotaForModel = quotaData.models.contains { model in
-                model.id == modelId && model.percentage != -1
+                model.id == modelId && model.percentage > 0
             }
             if hasQuotaForModel {
                 return true

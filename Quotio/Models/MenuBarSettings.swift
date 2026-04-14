@@ -161,12 +161,21 @@ enum QuotaDisplayMode: String, Codable, CaseIterable, Identifiable {
         }
     }
     
-    /// Convert a remaining percentage to the display value based on mode.
-    /// Used can exceed 100% (overage), Remaining floors at 0%.
+    /// Convert a remaining percentage to the display value based on mode
     func displayValue(from remainingPercent: Double) -> Double {
         switch self {
         case .used: return 100 - remainingPercent
-        case .remaining: return max(0, remainingPercent)
+        case .remaining: return remainingPercent
+        }
+    }
+
+    /// Unclamped display value from raw used/limit: Used can exceed 100%, Remaining floors at 0%.
+    func unclampedDisplayValue(used: Int, limit: Int) -> Double {
+        guard limit > 0 else { return 0 }
+        let usedPercent = Double(used) / Double(limit) * 100
+        switch self {
+        case .used: return usedPercent
+        case .remaining: return max(0, 100 - usedPercent)
         }
     }
     
@@ -359,7 +368,7 @@ extension MenuBarSettingsManager {
     }
     
     func aggregateModelPercentages(_ percentages: [Double]) -> Double {
-        let validPercentages = percentages.filter { $0 != -1 }
+        let validPercentages = percentages.filter { $0 >= 0 }
         guard !validPercentages.isEmpty else { return -1 }
         
         switch modelAggregationMode {
@@ -409,7 +418,16 @@ struct MenuBarQuotaDisplayItem: Identifiable {
     let percentage: Double
     let provider: AIProvider
     var isForbidden: Bool = false
+    var used: Int?
+    var limit: Int?
 
+    func displayPercent(mode: QuotaDisplayMode) -> Double {
+        if let used, let limit, limit > 0 {
+            return mode.unclampedDisplayValue(used: used, limit: limit)
+        }
+        return mode.displayValue(from: percentage)
+    }
+    
     var statusColor: Color {
         if isForbidden { return .orange }
         if percentage > 50 { return .green }

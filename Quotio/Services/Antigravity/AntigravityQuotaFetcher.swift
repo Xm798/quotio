@@ -144,7 +144,7 @@ nonisolated struct ModelQuota: Codable, Identifiable, Sendable {
     }
 
     var formattedPercentage: String {
-        if percentage == -1 {
+        if percentage < 0 {
             return "—" // Unknown/unavailable
         }
         if percentage == percentage.rounded() {
@@ -280,6 +280,11 @@ nonisolated struct ProviderQuotaData: Codable, Sendable {
         self.isForbidden = isForbidden
         self.planType = planType
         self.tokenExpiresAt = tokenExpiresAt
+    }
+
+    /// The model with the lowest valid percentage, falling back to the first model.
+    var lowestModel: ModelQuota? {
+        models.filter { $0.percentage >= 0 }.min(by: { $0.percentage < $1.percentage }) ?? models.first
     }
 
     /// Format token expiry time in user's local timezone

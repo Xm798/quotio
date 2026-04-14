@@ -216,7 +216,7 @@ private struct QuotaSection: View {
     @State private var settings = MenuBarSettingsManager.shared
     
     private var progressWidth: Double {
-        max(0, remainingPercent) / 100
+        remainingPercent / 100
     }
     
     var body: some View {
@@ -308,10 +308,8 @@ private struct QuotaAccountRow: View {
 
                 if let quotaData = quotaData, !quotaData.models.isEmpty {
                     HStack(spacing: 4) {
-                        let displayMode = settings.quotaDisplayMode
                         ForEach(quotaData.models.prefix(2)) { model in
-                            let dp = displayMode.displayValue(from: model.percentage)
-                            Text(verbatim: "\(Int(dp))%")
+                            Text(verbatim: "\(model.percentage)%")
                                 .font(.caption2)
                                 .foregroundStyle(model.percentage > 50 ? .green : (model.percentage > 20 ? .orange : .red))
                         }

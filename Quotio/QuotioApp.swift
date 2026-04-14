@@ -107,6 +107,8 @@ final class AppBootstrap {
 
             var displayPercent: Double = -1
             var isForbidden = false
+            var lowestUsed: Int?
+            var lowestLimit: Int?
 
             if let accountQuotas = viewModel.providerQuotas[provider],
                let quotaData = resolveQuotaData(
@@ -118,6 +120,8 @@ final class AppBootstrap {
                 if !quotaData.models.isEmpty {
                     let models = quotaData.models.map { (name: $0.name, percentage: $0.percentage) }
                     displayPercent = menuBarSettings.totalUsagePercent(models: models)
+                    lowestUsed = quotaData.lowestModel?.used
+                    lowestLimit = quotaData.lowestModel?.limit
                 }
             }
 
@@ -127,7 +131,9 @@ final class AppBootstrap {
                 accountShort: selectedItem.accountKey,
                 percentage: displayPercent,
                 provider: provider,
-                isForbidden: isForbidden
+                isForbidden: isForbidden,
+                used: lowestUsed,
+                limit: lowestLimit
             ))
         }
 

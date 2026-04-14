@@ -14,6 +14,8 @@ struct RingProgressView: View {
     var lineWidth: CGFloat = 4
     var tint: Color = .accentColor
     var showLabel: Bool = false
+    /// Override the label text independently from ring fill (e.g. >100% for overage).
+    var labelPercent: Double?
 
     private var clamped: Double {
         min(100, max(0, percent))
@@ -34,7 +36,7 @@ struct RingProgressView: View {
 
             // Optional center label
             if showLabel {
-                Text("\(Int(percent))%")
+                Text("\(Int(labelPercent ?? clamped))%")
                     .font(.system(size: size * 0.24, weight: .bold))
                     .monospacedDigit()
             }

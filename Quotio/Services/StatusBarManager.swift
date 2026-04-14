@@ -234,7 +234,7 @@ struct StatusBarQuotaItemView: View {
     
     var body: some View {
         let displayMode = settings.quotaDisplayMode
-        let displayPercent = displayMode.displayValue(from: item.percentage)
+        let displayPercent = item.displayPercent(mode: displayMode)
         
         HStack(spacing: 2) {
             if let assetName = item.provider.menuBarIconAsset {
@@ -253,7 +253,7 @@ struct StatusBarQuotaItemView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 10))
                     .foregroundStyle(.orange)
-            } else if item.percentage != -1 {
+            } else if item.percentage >= 0 {
                 Text(formatPercentage(displayPercent))
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundStyle(colorMode == .colored ? item.statusColor : .primary)
@@ -264,6 +264,7 @@ struct StatusBarQuotaItemView: View {
     }
     
     private func formatPercentage(_ value: Double) -> String {
-        return String(format: "%.0f%%", max(0, value).rounded())
+        if value < 0 { return "--%"}
+        return String(format: "%.0f%%", value.rounded())
     }
 }
