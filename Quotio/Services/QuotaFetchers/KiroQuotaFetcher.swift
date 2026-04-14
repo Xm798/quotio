@@ -733,7 +733,7 @@ actor KiroQuotaFetcher {
 
                     var percentage: Double = 0
                     if total > 0 {
-                        percentage = min(100, max(0, (total - used) / total * 100))
+                        percentage = (total - used) / total * 100
                     }
 
                     // Calculate free trial expiry time
@@ -762,7 +762,7 @@ actor KiroQuotaFetcher {
                 // Add regular quota if it has meaningful limits
                 if regularTotal > 0 {
                     var percentage: Double = 0
-                    percentage = min(100, max(0, (regularTotal - regularUsed) / regularTotal * 100))
+                    percentage = (regularTotal - regularUsed) / regularTotal * 100
 
                     // Calculate overage: prefer server-reported overageUsage, fall back to arithmetic
                     let overageUsedValue = breakdown.overageUsage ?? 0

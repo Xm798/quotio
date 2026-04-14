@@ -144,7 +144,7 @@ nonisolated struct ModelQuota: Codable, Identifiable, Sendable {
     }
 
     var formattedPercentage: String {
-        if percentage < 0 {
+        if percentage == -1 {
             return "—" // Unknown/unavailable
         }
         if percentage == percentage.rounded() {

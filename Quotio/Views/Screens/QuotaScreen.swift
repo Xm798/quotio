@@ -746,7 +746,7 @@ private struct AccountQuotaCardV2: View {
 
     private var isQuotaUnavailable: Bool {
         guard let data = account.quotaData else { return false }
-        return data.models.allSatisfy { $0.percentage < 0 }
+        return data.models.allSatisfy { $0.percentage == -1 }
     }
     
     private var displayStyle: QuotaDisplayStyle { settings.quotaDisplayStyle }
@@ -1628,7 +1628,9 @@ private struct KiroCreditUsageBar: View {
     }
 
     private var creditDisplayPercent: Double {
-        settings.quotaDisplayMode.unclampedDisplayValue(used: used, limit: limit)
+        guard limit > 0 else { return 0 }
+        let remainingPercent = Double(limit - used) / Double(limit) * 100
+        return settings.quotaDisplayMode.displayValue(from: remainingPercent)
     }
 
     private var totalWithOverage: Int {

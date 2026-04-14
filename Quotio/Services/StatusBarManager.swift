@@ -253,7 +253,7 @@ struct StatusBarQuotaItemView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 10))
                     .foregroundStyle(.orange)
-            } else if item.percentage >= 0 {
+            } else if item.percentage != -1 {
                 Text(formatPercentage(displayPercent))
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundStyle(colorMode == .colored ? item.statusColor : .primary)
@@ -264,9 +264,6 @@ struct StatusBarQuotaItemView: View {
     }
     
     private func formatPercentage(_ value: Double) -> String {
-        if value < 0 { return "--%"}
-        // Defensive clamp to valid 0-100 range
-        let clamped = min(100, max(0, value))
-        return String(format: "%.0f%%", clamped.rounded())
+        return String(format: "%.0f%%", max(0, value).rounded())
     }
 }
