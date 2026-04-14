@@ -17,6 +17,16 @@ nonisolated struct KiroUsageResponse: Decodable {
     let subscriptionInfo: KiroSubscriptionInfo?
     let userInfo: KiroUserInfo?
     let nextDateReset: Double?
+    let overageConfiguration: KiroOverageConfiguration?
+
+    struct KiroOverageConfiguration: Decodable {
+        enum OverageStatus: String, Decodable {
+            case enabled = "ENABLED"
+            case disabled = "DISABLED"
+        }
+        let overageStatus: OverageStatus?
+        let overageLimit: Int?
+    }
 
     struct KiroUsageBreakdown: Decodable {
         let displayName: String?
@@ -771,8 +781,8 @@ actor KiroQuotaFetcher {
                         remaining: Int(max(0, regularTotal - regularUsed))
                     )
 
-                    // Always write overage info so stale enabled entries get cleared
-                    let overageIsEnabled = breakdown.overageEnabled == true
+                    let overageIsEnabled = response.overageConfiguration?.overageStatus == .enabled
+                        || breakdown.overageEnabled == true
                     let cacheKey = "\(accountKey):\(quotaName)"
                     KiroQuotaFetcher.setOverageInfo(
                         KiroOverageInfo(
